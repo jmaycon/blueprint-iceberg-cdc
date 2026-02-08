@@ -48,6 +48,19 @@ This project follows feature/vertical-slice packaging for a CDC component (organ
 **Local UIs**
 - Hue (Trino query UI): `http://localhost:8888`
 
+**SQL Examples**
+Use the following queries in Apache Hue or DBeaver by connecting to the local UI endpoint above.
+
+```sql
+SELECT * FROM iceberg.default.flight_tickets;
+
+SELECT * FROM iceberg.default."flight_tickets$snapshots" ORDER BY committed_at DESC;
+
+DESCRIBE iceberg.default.flight_tickets;
+
+SHOW COLUMNS FROM iceberg.default.flight_tickets;
+```
+
 **Configuration**
 - See `src/main/resources/application.yaml` for baseline settings.
 - Configure Kafka brokers, topic name, and Iceberg catalog settings.

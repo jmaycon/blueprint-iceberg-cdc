@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "DownstreamConsumerApplication",
+            "request": "launch",
+            "mainClass": "edu.jmaycon.downstreamconsumer.DownstreamConsumerApplication",
+            "projectName": "blueprint-iceberg-cdc"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-IcebergWriterApplication",
+            "request": "launch",
+            "mainClass": "edu.jmaycon.icerbergwriter.IcebergWriterApplication",
+            "projectName": "blueprint-iceberg-cdc",
+            "vmArgs": "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED",
+            "console": "integratedTerminal"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-CdcApplication",
+            "request": "launch",
+            "mainClass": "edu.jmaycon.cdcapp.CdcApplication",
+            "projectName": "blueprint-iceberg-cdc",
+            "vmArgs": "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.util.calendar=ALL-UNNAMED",
+            "console": "integratedTerminal"
+        }
+    ]
+}
