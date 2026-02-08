@@ -16,6 +16,18 @@ Blueprint architecture for Change Data Capture from Iceberg materialized views s
 2. Spark derives row-level changes.
 3. Changes are published to a Kafka compacted topic.
 
+**Package Structure**
+
+This project follows feature/vertical-slice packaging for a CDC component (organized by CDC responsibilities)
+
+- `edu.jmaycon.cdcapp.model`: domain identifiers, records, and CDC result types.
+- `edu.jmaycon.cdcapp.trigger`: snapshot CDC triggers (e.g.; listener or scheduled jobs)
+- `edu.jmaycon.cdcapp.source`: Iceberg source tables from which the changes will be read.
+- `edu.jmaycon.cdcapp.mapping`: row-to-change mapping and schema evolution handling.
+- `edu.jmaycon.cdcapp.sink`: Kafka publishing and serialization wiring.
+- `edu.jmaycon.cdcapp.state`: cursor persistence (JDBC/S3).
+- `edu.jmaycon.cdcapp.runtime`: orchestration, runners, and app wiring.
+
 **Prerequisites**
 - Java 17+
 - Maven 3.9+
