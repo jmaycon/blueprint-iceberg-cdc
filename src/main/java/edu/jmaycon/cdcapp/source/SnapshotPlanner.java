@@ -1,3 +1,9 @@
 package edu.jmaycon.cdcapp.source;
 
-public class SnapshotPlanner {}
+import edu.jmaycon.cdcapp.model.SnapshotId;
+
+public class SnapshotPlanner {
+    public SnapshotId plan(SnapshotId snapshotId) {
+        return snapshotId;
+    }
+}

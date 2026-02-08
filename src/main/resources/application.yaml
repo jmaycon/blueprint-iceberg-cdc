@@ -1,3 +1,25 @@
 spring:
   application:
     name: blueprint-iceberg-cdc
+
+cdcapp:
+  aws:
+    endpoint: http://localhost:4566
+    region: eu-central-1
+    access-key-id: admin
+    secret-access-key: admin123
+  sqs:
+    queue-name: flight_tickets.fifo
+    poll-delay: 2000
+    max-messages: 10
+    wait-time-seconds: 10
+  kafka:
+    bootstrap-servers: localhost:9092
+    topic: flight_tickets
+  iceberg:
+    catalog-uri: http://localhost:8181
+    warehouse: s3://analytics-warehouse
+    s3-endpoint: http://localhost:9000
+    s3-region: eu-central-1
+    s3-access-key: admin
+    s3-secret-key: admin123

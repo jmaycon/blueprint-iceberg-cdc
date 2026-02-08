@@ -1,3 +1,3 @@
 package edu.jmaycon.cdcapp.model;
 
-public class SnapshotId {}
+public record SnapshotId(long value) {}

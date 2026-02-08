@@ -1,3 +1,5 @@
 package edu.jmaycon.cdcapp.source;
 
-public class IcebergRowView {}
+import edu.playground.avro.FlightTicketAvro;
+
+public record IcebergRowView(FlightTicketAvro ticket) {}
