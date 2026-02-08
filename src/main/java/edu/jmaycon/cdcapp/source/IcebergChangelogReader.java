@@ -6,12 +6,14 @@ import java.util.List;
 
 public class IcebergChangelogReader {
     private final IcebergTableClient tableClient;
+    private final String table;
 
-    public IcebergChangelogReader(IcebergTableClient tableClient) {
+    public IcebergChangelogReader(IcebergTableClient tableClient, String table) {
         this.tableClient = tableClient;
+        this.table = table;
     }
 
     public List<FlightTicketAvro> readSnapshot(SnapshotId snapshotId) {
-        return tableClient.readSnapshot(snapshotId);
+        return tableClient.readSnapshot(snapshotId, table);
     }
 }

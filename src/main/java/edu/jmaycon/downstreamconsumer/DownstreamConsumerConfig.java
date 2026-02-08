@@ -21,12 +21,18 @@ public class DownstreamConsumerConfig {
             DownstreamConsumerProperties properties) {
         DownstreamConsumerProperties.Kafka kafka = properties.kafka();
         Map<String, Object> config = Map.of(
-                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.bootstrapServers(),
-                ConsumerConfig.GROUP_ID_CONFIG, kafka.groupId(),
-                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
-                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
-                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, FlightTicketAvroDeserializer.class,
-                "specific.avro.reader", kafka.avroSpecificReader());
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
+                kafka.bootstrapServers(),
+                ConsumerConfig.GROUP_ID_CONFIG,
+                kafka.groupId(),
+                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,
+                "earliest",
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+                StringDeserializer.class,
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+                FlightTicketAvroDeserializer.class,
+                "specific.avro.reader",
+                kafka.avroSpecificReader());
         return new DefaultKafkaConsumerFactory<>(config);
     }
 
@@ -36,12 +42,12 @@ public class DownstreamConsumerConfig {
     }
 
     @Bean
-    public ConcurrentMessageListenerContainer<String, edu.playground.avro.FlightTicketAvro>
-            kafkaListenerContainer(
-                    ConsumerFactory<String, edu.playground.avro.FlightTicketAvro> consumerFactory,
-                    MessageListener<String, edu.playground.avro.FlightTicketAvro> kafkaLogListener,
-                    DownstreamConsumerProperties properties) {
-        ContainerProperties containerProperties = new ContainerProperties(properties.kafka().topic());
+    public ConcurrentMessageListenerContainer<String, edu.playground.avro.FlightTicketAvro> kafkaListenerContainer(
+            ConsumerFactory<String, edu.playground.avro.FlightTicketAvro> consumerFactory,
+            MessageListener<String, edu.playground.avro.FlightTicketAvro> kafkaLogListener,
+            DownstreamConsumerProperties properties) {
+        ContainerProperties containerProperties =
+                new ContainerProperties(properties.kafka().topic());
         containerProperties.setMessageListener(kafkaLogListener);
         return new ConcurrentMessageListenerContainer<>(consumerFactory, containerProperties);
     }

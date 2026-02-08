@@ -3,8 +3,8 @@ package edu.jmaycon.downstreamconsumer;
 import edu.playground.avro.FlightTicketAvro;
 import java.io.IOException;
 import java.util.Map;
-import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.DatumReader;
+import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.kafka.common.serialization.Deserializer;
 

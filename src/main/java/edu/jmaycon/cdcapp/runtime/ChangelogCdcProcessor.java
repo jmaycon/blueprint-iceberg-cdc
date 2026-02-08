@@ -70,8 +70,7 @@ public class ChangelogCdcProcessor implements CdcChangeProcessor {
                   '%s',
                   map('start-snapshot-id','%d','end-snapshot-id','%d'))
                 """
-                        .formatted(
-                                iceberg.table(), tempViewName, startSnapshot.value(), endSnapshot.value());
+                        .formatted(iceberg.table(), tempViewName, startSnapshot.value(), endSnapshot.value());
         sparkSession.sql(statement);
     }
 
