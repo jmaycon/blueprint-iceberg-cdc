@@ -23,11 +23,16 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class IcebergWriterApplication implements CommandLineRunner {
+    private final CdcSnapshotPublisher cdcSnapshotPublisher;
 
     static {
         System.setProperty("aws.region", "eu-central-1");
         System.setProperty("aws.accessKeyId", "admin");
         System.setProperty("aws.secretAccessKey", "admin123");
+    }
+
+    public IcebergWriterApplication(CdcSnapshotPublisher cdcSnapshotPublisher) {
+        this.cdcSnapshotPublisher = cdcSnapshotPublisher;
     }
 
     public static void main(String[] args) {
@@ -64,6 +69,9 @@ public class IcebergWriterApplication implements CommandLineRunner {
         df.writeTo("rest.default.flight_tickets")
                 .tableProperty("format-version", "2")
                 .createOrReplace();
+
+        long snapshotId = latestSnapshotId(spark);
+        cdcSnapshotPublisher.publishSnapshot(snapshotId);
 
         spark.stop();
     }
@@ -136,5 +144,17 @@ public class IcebergWriterApplication implements CommandLineRunner {
 
     private static Timestamp toTimestamp(Instant instant) {
         return Timestamp.from(instant);
+    }
+
+    private static long latestSnapshotId(SparkSession spark) {
+        Dataset<Row> snapshotIds = spark.sql(
+                """
+                SELECT snapshot_id
+                FROM rest.default.flight_tickets.snapshots
+                ORDER BY committed_at DESC
+                LIMIT 1
+                """);
+        Row row = snapshotIds.collectAsList().get(0);
+        return row.getLong(0);
     }
 }
