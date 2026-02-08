@@ -45,6 +45,9 @@ This project follows feature/vertical-slice packaging for a CDC component (organ
    java -jar target/blueprint-iceberg-cdc.jar
    ```
 
+**Local UIs**
+- Hue (Trino query UI): `http://localhost:8888`
+
 **Configuration**
 - See `src/main/resources/application.yaml` for baseline settings.
 - Configure Kafka brokers, topic name, and Iceberg catalog settings.

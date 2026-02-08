@@ -28,7 +28,7 @@ services:
     image: localstack/localstack:latest
     container_name: localstack
     environment:
-      SERVICES: glue,sqs
+      SERVICES: sqs
       AWS_DEFAULT_REGION: ${AWS_REGION:-eu-central-1}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-admin}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-admin123}
@@ -51,6 +51,23 @@ services:
     volumes:
       - ./trino/iceberg.properties:/etc/trino/catalog/iceberg.properties:ro
       - ./trino/config.properties:/etc/trino/config.properties
+
+  iceberg-rest-catalog:
+    image: apache/iceberg-rest-fixture:latest
+    container_name: iceberg-rest-catalog
+    depends_on: [minio-init]
+    ports:
+      - "8181:8181"
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-admin}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-admin123}
+      AWS_REGION: ${AWS_REGION:-eu-central-1}
+      CATALOG_WAREHOUSE: s3://analytics-warehouse
+      CATALOG_IO__IMPL: org.apache.iceberg.aws.s3.S3FileIO
+      CATALOG_S3_ENDPOINT: http://minio:9000
+      CATALOG_S3_PATH__STYLE__ACCESS: "true"
+      CATALOG_S3_ACCESS__KEY__ID: ${AWS_ACCESS_KEY_ID:-admin}
+      CATALOG_S3_SECRET__ACCESS__KEY: ${AWS_SECRET_ACCESS_KEY:-admin123}
 
 
   kafka:
@@ -119,3 +136,19 @@ services:
       KAFKA_CLUSTERS_0_NAME: "LocalKafka"
       KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: "kafka:9092"
       KAFKA_CLUSTERS_0_SCHEMA_REGISTRY: "http://kafka-schema-registry:8081"
+
+  hue:
+    image: gethue/hue:latest
+    container_name: hue-dev-tool-query-ui
+    user: "0:0"
+    ports:
+      - "8888:8888"
+    environment:
+      - HUE_DATABASE_ENGINE=sqlite3
+      - HUE_IGNORE_PASSWORD_SCRIPT_ERRORS=True
+      - TMPDIR=/tmp
+    volumes:
+      - ./hue:/usr/share/hue/desktop/conf
+    depends_on:
+      trino:
+        condition: service_started
