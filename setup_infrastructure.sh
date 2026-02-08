@@ -4,6 +4,12 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMPOSE_FILE="$ROOT_DIR/.infra/docker-compose.yml"
 SCHEMA_PATH="$ROOT_DIR/src/main/resources/kafka-schemas/flight-tickets.avsc"
+KAFKA_HOST="localhost"
+KAFKA_PORT="9092"
+KARAPACE_HOST="localhost"
+KARAPACE_PORT="8081"
+LOCALSTACK_HOST="localhost"
+LOCALSTACK_PORT="4566"
 
 log() {
   echo "[setup_infrastructure] $*"
@@ -40,7 +46,7 @@ wait_for_sqs() {
 wait_for_karapace() {
   log "Waiting for Karapace to be ready..."
   local tries=0
-  until curl -sS http://localhost:8082/subjects >/dev/null 2>&1; do
+  until curl -sSf "http://${KARAPACE_HOST}:${KARAPACE_PORT}/subjects" >/dev/null 2>&1; do
     tries=$((tries + 1))
     if [ "$tries" -gt 40 ]; then
       log "Karapace did not become ready in time."
@@ -51,12 +57,11 @@ wait_for_karapace() {
   log "Karapace is ready."
 }
 
-set_karapace_compatibility() {
-  log "Setting Karapace global compatibility to FULL_TRANSITIVE"
-  curl -sS -X PUT "http://localhost:8082/config" \
-    -H 'Content-Type: application/vnd.schemaregistry.v1+json' \
-    -d '{"compatibility":"FULL_TRANSITIVE"}' >/dev/null
+wait_for_karapace_master() {
+  log "Waiting for Karapace to settle master election..."
+  sleep 6
 }
+
 
 create_sqs_queue() {
   local queue_name="flight_tickets.fifo"
@@ -80,19 +85,40 @@ create_kafka_topic() {
 }
 
 upload_schema() {
+  local subject="flight_tickets-value"
+  if curl -sS "http://${KARAPACE_HOST}:${KARAPACE_PORT}/subjects" | grep -q "\"${subject}\""; then
+    log "Schema subject already exists, skipping upload: ${subject}"
+    return 0
+  fi
+  log "Uploading schema to Karapace subject: $subject"
+
   if [ ! -f "$SCHEMA_PATH" ]; then
     log "Schema file not found: $SCHEMA_PATH"
     return 1
   fi
 
-  local subject="flight_tickets-value"
-  log "Uploading schema to Karapace subject: $subject"
-  local schema
-  schema=$(tr -d '\n' < "$SCHEMA_PATH" | sed 's/\\/\\\\/g; s/"/\\"/g')
+  local payload
+  payload=$(jq -Rs '{schema: .}' "$SCHEMA_PATH")
 
-  curl -sS -X POST "http://localhost:8082/subjects/${subject}/versions" \
+  curl -sS -X POST "http://${KARAPACE_HOST}:${KARAPACE_PORT}/subjects/${subject}/versions" \
     -H 'Content-Type: application/vnd.schemaregistry.v1+json' \
-    -d "{\"schema\":\"${schema}\"}" >/dev/null
+    --data-binary "$payload"
+}
+
+
+
+verify_schema_registered() {
+  local subject="flight_tickets-value"
+  log "Verifying schema is registered (subject: ${subject})"
+  local subjects
+  subjects=$(curl -sS "http://${KARAPACE_HOST}:${KARAPACE_PORT}/subjects")
+  if echo "$subjects" | grep -q "\"${subject}\""; then
+    log "Schema subject found: ${subject}"
+    return 0
+  fi
+  log "Schema subject not found after upload."
+  echo "$subjects"
+  return 1
 }
 
 log "Undeploying infrastructure..."
@@ -104,10 +130,11 @@ docker compose -f "$COMPOSE_FILE" up -d
 wait_for_kafka
 wait_for_sqs
 wait_for_karapace
+wait_for_karapace_master
 
-set_karapace_compatibility
 create_kafka_topic
 create_sqs_queue
 upload_schema
+verify_schema_registered
 
 log "Infrastructure setup complete."

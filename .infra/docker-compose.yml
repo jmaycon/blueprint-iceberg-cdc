@@ -55,6 +55,7 @@ services:
 
   kafka:
     image: apache/kafka:3.8.0
+    container_name: kafka
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
@@ -69,6 +70,10 @@ services:
       KAFKA_DEFAULT_REPLICATION_FACTOR: 1
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    ports:
+      - "9092:9092"  
     healthcheck:
       test: ['CMD', '/opt/kafka/bin/kafka-topics.sh', '--bootstrap-server', 'kafka:9092', '--list']
       interval: 15s
@@ -76,27 +81,41 @@ services:
       retries: 10
       start_period: 60s
 
-  karapace-schema-registry:
+  kafka-schema-registry:
+    container_name: kafka-schema-registry
     image: ghcr.io/aiven-open/karapace:4.1.1
     ports:
-      - "8082:8082"
+      - "8081:8081"
     depends_on:
       kafka:
         condition: service_healthy
     entrypoint:
-      - /bin/bash
       - /opt/karapace/start.sh
       - registry
     environment:
       KARAPACE_BOOTSTRAP_URI: kafka:9092
       KARAPACE_HOST: 0.0.0.0
-      KARAPACE_PORT: 8082
-      KARAPACE_MASTER_ELIGIBILITY: "true"
-      KARAPACE_TOPIC_NAME: _karapace_schemas
-      KARAPACE_LOG_LEVEL: WARNING
-      KARAPACE_CLIENT_ID: karapace
-      KARAPACE_GROUP_ID: karapace-registry
+      KARAPACE_PORT: 8081
 
-      # Explicitly disable authentication
+      KARAPACE_ADVERTISED_HOSTNAME: kafka-schema-registry
+      KARAPACE_ADVERTISED_PORT: 8081
+
+      KARAPACE_MASTER_ELIGIBILITY: "true"
+      KARAPACE_TOPIC_NAME: _schemas
       KARAPACE_AUTHENTICATION: "false"
       KARAPACE_AUTHORIZATION: "false"
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8084:8080"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      kafka-schema-registry:
+        condition: service_started
+    environment:
+      KAFKA_CLUSTERS_0_NAME: "LocalKafka"
+      KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: "kafka:9092"
+      KAFKA_CLUSTERS_0_SCHEMA_REGISTRY: "http://kafka-schema-registry:8081"

@@ -113,18 +113,11 @@
                 "symbols": [
                   "CARRY_ON",
                   "CHECKED",
-                  "Unknown"
+                  "UNKNOWN"
                 ],
-                /*
-                 * Symbol default - for forwards compatibility -
-                 * new in Avro 1.9.0
-                 */
-                "default": "Unknown"
+                "default": "UNKNOWN"
               },
-              /*
-              * Field default - for handle backwards compatibility
-              */
-              "default": "Unknown"
+              "default": "UNKNOWN"
             }
           ]
         }
