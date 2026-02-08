@@ -3,11 +3,7 @@ package edu.jmaycon.cdcapp.runtime;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "cdcapp")
-public record CdcAppProperties(
-        Aws aws,
-        Sqs sqs,
-        Kafka kafka,
-        Iceberg iceberg) {
+public record CdcAppProperties(Aws aws, Sqs sqs, Kafka kafka, Iceberg iceberg) {
 
     public record Aws(String endpoint, String region, String accessKeyId, String secretAccessKey) {}
 

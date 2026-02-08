@@ -1,5 +1,6 @@
 package edu.jmaycon.cdcapp.runtime;
 
+import edu.jmaycon.cdcapp.sink.FlightTicketAvroSerializer;
 import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
 import edu.jmaycon.cdcapp.source.IcebergChangelogReader;
 import edu.jmaycon.cdcapp.source.IcebergSnapshotReader;
@@ -7,6 +8,7 @@ import edu.jmaycon.cdcapp.source.IcebergTableClient;
 import edu.jmaycon.cdcapp.source.SnapshotPlanner;
 import edu.jmaycon.cdcapp.trigger.SnapshotMessageParser;
 import edu.jmaycon.cdcapp.trigger.SqsSnapshotListener;
+import edu.playground.avro.FlightTicketAvro;
 import java.net.URI;
 import java.util.Map;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -24,15 +26,13 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
-import edu.jmaycon.cdcapp.sink.FlightTicketAvroSerializer;
-import edu.playground.avro.FlightTicketAvro;
 
 @Configuration
 @EnableScheduling
 @EnableConfigurationProperties(CdcAppProperties.class)
 public class AppConfig {
 
-     static {
+    static {
         System.setProperty("aws.region", "eu-central-1");
         System.setProperty("aws.accessKeyId", "admin");
         System.setProperty("aws.secretAccessKey", "admin123");
@@ -75,9 +75,11 @@ public class AppConfig {
 
     @Bean
     public String sqsQueueUrl(SqsClient sqsClient, CdcAppProperties properties) {
-        return sqsClient.getQueueUrl(GetQueueUrlRequest.builder()
-                .queueName(properties.sqs().queueName())
-                .build()).queueUrl();
+        return sqsClient
+                .getQueueUrl(GetQueueUrlRequest.builder()
+                        .queueName(properties.sqs().queueName())
+                        .build())
+                .queueUrl();
     }
 
     @Bean
@@ -102,18 +104,21 @@ public class AppConfig {
 
     @Bean
     public IcebergSnapshotReader icebergSnapshotReader(
-            SnapshotPlanner snapshotPlanner,
-            IcebergChangelogReader icebergChangelogReader) {
+            SnapshotPlanner snapshotPlanner, IcebergChangelogReader icebergChangelogReader) {
         return new IcebergSnapshotReader(snapshotPlanner, icebergChangelogReader);
     }
 
     @Bean
     public ProducerFactory<String, FlightTicketAvro> kafkaProducerFactory(CdcAppProperties properties) {
         Map<String, Object> config = Map.of(
-                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, properties.kafka().bootstrapServers(),
-                ProducerConfig.ACKS_CONFIG, "all",
-                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
-                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, FlightTicketAvroSerializer.class);
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
+                properties.kafka().bootstrapServers(),
+                ProducerConfig.ACKS_CONFIG,
+                "all",
+                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+                StringSerializer.class,
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+                FlightTicketAvroSerializer.class);
         return new DefaultKafkaProducerFactory<>(config);
     }
 
@@ -124,15 +129,14 @@ public class AppConfig {
     }
 
     @Bean
-    public KafkaChangePublisher kafkaChangePublisher(KafkaTemplate<String, FlightTicketAvro> kafkaTemplate,
-                                                     CdcAppProperties properties) {
+    public KafkaChangePublisher kafkaChangePublisher(
+            KafkaTemplate<String, FlightTicketAvro> kafkaTemplate, CdcAppProperties properties) {
         return new KafkaChangePublisher(kafkaTemplate, properties.kafka().topic());
     }
 
     @Bean
     public CdcOrchestrator cdcOrchestrator(
-            IcebergSnapshotReader snapshotReader,
-            KafkaChangePublisher kafkaChangePublisher) {
+            IcebergSnapshotReader snapshotReader, KafkaChangePublisher kafkaChangePublisher) {
         return new CdcOrchestrator(snapshotReader, kafkaChangePublisher);
     }
 
@@ -143,11 +147,6 @@ public class AppConfig {
             SnapshotMessageParser snapshotMessageParser,
             CdcOrchestrator orchestrator,
             CdcAppProperties properties) {
-        return new SqsSnapshotListener(
-                sqsClient,
-                sqsQueueUrl,
-                snapshotMessageParser,
-                orchestrator,
-                properties.sqs());
+        return new SqsSnapshotListener(sqsClient, sqsQueueUrl, snapshotMessageParser, orchestrator, properties.sqs());
     }
 }
