@@ -14,8 +14,15 @@ cdcapp:
     max-messages: 10
     wait-time-seconds: 10
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: localhost:9094
     topic: flight_tickets
+
+downstreamconsumer:
+  kafka:
+    bootstrap-servers: localhost:9094
+    topic: flight_tickets
+    group-id: downstream-consumer
+    avro-specific-reader: false
   iceberg:
     catalog-uri: http://localhost:8181
     warehouse: s3://analytics-warehouse
