@@ -51,6 +51,13 @@ wait_for_karapace() {
   log "Karapace is ready."
 }
 
+set_karapace_compatibility() {
+  log "Setting Karapace global compatibility to FULL_TRANSITIVE"
+  curl -sS -X PUT "http://localhost:8082/config" \
+    -H 'Content-Type: application/vnd.schemaregistry.v1+json' \
+    -d '{"compatibility":"FULL_TRANSITIVE"}' >/dev/null
+}
+
 create_sqs_queue() {
   local queue_name="flight_tickets.fifo"
   log "Creating SQS FIFO queue: $queue_name"
@@ -98,6 +105,7 @@ wait_for_kafka
 wait_for_sqs
 wait_for_karapace
 
+set_karapace_compatibility
 create_kafka_topic
 create_sqs_queue
 upload_schema
