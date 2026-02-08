@@ -18,6 +18,11 @@ Blueprint architecture for Change Data Capture from Iceberg materialized views s
 2. Spark derives row-level changes.
 3. Changes are published to a Kafka compacted topic.
 
+**Applications**
+- `cdcapp`: Spring Boot CDC service that listens for snapshot triggers, computes Iceberg change sets, and publishes Kafka updates.
+- `downstreamconsumer`: sample Kafka consumer for validating and inspecting published CDC events.
+- `icebergwriter`: utility app that seeds/updates the Iceberg table and emits snapshot notifications.
+
 **Package Structure**
 
 This project follows feature/vertical-slice packaging for a CDC component (organized by CDC responsibilities)
