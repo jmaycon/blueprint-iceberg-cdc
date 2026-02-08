@@ -2,6 +2,8 @@
 
 Blueprint architecture for Change Data Capture from Iceberg materialized views streamed to Kafka as a compacted change-log topic. Built with Spark, Iceberg, and Kafka.
 
+`blueprint-iceberg-cdc` provides a Spark-based CDC blueprint for Apache Iceberg, exposing a `create_changelog_view` procedure to generate INSERT/UPDATE/DELETE change feeds between snapshots or timestamps (with computed updates via identifier columns) for publishing ticket-level changes to Kafka.
+
 **What This Is**
 - Reference design for producing CDC events from Iceberg tables.
 - Focused on a materialized view to change-log pipeline.
