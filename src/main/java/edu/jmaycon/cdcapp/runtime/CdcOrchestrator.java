@@ -1,4 +1,3 @@
 package edu.jmaycon.cdcapp.runtime;
 
-public class CdcOrchestrator {
-}
+public class CdcOrchestrator {}

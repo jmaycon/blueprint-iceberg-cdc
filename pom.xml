@@ -13,21 +13,11 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>blueprint-iceberg-cdc</name>
 	<description>Demo project for Spring Boot</description>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
+	
 	<properties>
 		<java.version>25</java.version>
+		<datafaker.version>2.0.2</datafaker.version>
+		<avro.version>1.11.3</avro.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -39,12 +29,23 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
+			<scope>provided</scope>
 		</dependency>
+		 <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+            <version>${avro.version}</version>
+        </dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+            <groupId>net.datafaker</groupId>
+            <artifactId>datafaker</artifactId>
+            <version>${datafaker.version}</version>
+        </dependency>
 	</dependencies>
 
 	<build>
@@ -73,7 +74,67 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			 <plugin>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro-maven-plugin</artifactId>
+                <version>${avro.version}</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>schema</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <sourceDirectory>${project.basedir}/src/main/resources/kafka-schemas</sourceDirectory>
+                    <stringType>String</stringType>
+                    <fieldVisibility>PRIVATE</fieldVisibility>
+                    <enableDecimalLogicalType>true</enableDecimalLogicalType>
+                    <javaSourceDirectories>true</javaSourceDirectories>
+                </configuration>
+            </plugin>
+			<plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>format-on-validate</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>apply</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <java>
+                        <palantirJavaFormat>
+                            <version>2.77.0</version>
+                        </palantirJavaFormat>
+                        <removeUnusedImports/>
+                        <endWithNewline/>
+                        <trimTrailingWhitespace/>
+                    </java>
+                </configuration>
+            </plugin>
 		</plugins>
 	</build>
+
+	 <repositories>
+        <repository>
+            <id>confluent</id>
+            <url>https://packages.confluent.io/maven/</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>confluent</id>
+            <url>https://packages.confluent.io/maven/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+
 
 </project>

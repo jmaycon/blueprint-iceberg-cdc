@@ -1,4 +1,3 @@
 package edu.jmaycon.cdcapp.trigger;
 
-public class SqsSnapshotListener {
-}
+public class SqsSnapshotListener {}

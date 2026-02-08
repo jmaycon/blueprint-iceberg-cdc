@@ -1,4 +1,3 @@
 package edu.jmaycon.cdcapp.model;
 
-public class SnapshotId {
-}
+public class SnapshotId {}

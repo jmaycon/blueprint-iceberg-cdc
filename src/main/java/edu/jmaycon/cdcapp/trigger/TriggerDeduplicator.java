@@ -1,4 +1,3 @@
 package edu.jmaycon.cdcapp.trigger;
 
-public class TriggerDeduplicator {
-}
+public class TriggerDeduplicator {}

@@ -1,4 +1,3 @@
 package edu.jmaycon.cdcapp.sink;
 
-public class KafkaProducerFactory {
-}
+public class KafkaProducerFactory {}

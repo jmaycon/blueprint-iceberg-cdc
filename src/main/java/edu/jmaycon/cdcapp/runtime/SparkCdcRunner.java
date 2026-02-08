@@ -1,4 +1,3 @@
 package edu.jmaycon.cdcapp.runtime;
 
-public class SparkCdcRunner {
-}
+public class SparkCdcRunner {}

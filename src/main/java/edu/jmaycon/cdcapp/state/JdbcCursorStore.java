@@ -1,4 +1,3 @@
 package edu.jmaycon.cdcapp.state;
 
-public class JdbcCursorStore {
-}
+public class JdbcCursorStore {}

@@ -1,4 +1,3 @@
 package edu.jmaycon.cdcapp.state;
 
-public class CursorStore {
-}
+public class CursorStore {}

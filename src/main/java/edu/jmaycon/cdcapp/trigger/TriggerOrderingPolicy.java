@@ -1,4 +1,3 @@
 package edu.jmaycon.cdcapp.trigger;
 
-public class TriggerOrderingPolicy {
-}
+public class TriggerOrderingPolicy {}

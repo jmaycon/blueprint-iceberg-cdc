@@ -1,4 +1,3 @@
 package edu.jmaycon.cdcapp.source;
 
-public class SnapshotPlanner {
-}
+public class SnapshotPlanner {}

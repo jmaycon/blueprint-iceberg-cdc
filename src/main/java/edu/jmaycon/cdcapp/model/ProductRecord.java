@@ -1,4 +1,3 @@
 package edu.jmaycon.cdcapp.model;
 
-public class ProductRecord {
-}
+public class ProductRecord {}

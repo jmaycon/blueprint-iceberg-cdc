@@ -1,4 +1,3 @@
 package edu.jmaycon.cdcapp.runtime;
 
-public class Main {
-}
+public class Main {}
