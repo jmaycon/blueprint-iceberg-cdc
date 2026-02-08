@@ -1,10 +1,10 @@
-package edu.jmaycon.blueprint_iceberg_cdc;
+package edu.jmaycon.cdcapp;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class BlueprintIcebergCdcApplicationTests {
+class CdcApplicationTests {
 
     @Test
     void contextLoads() {}
