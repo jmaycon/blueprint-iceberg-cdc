@@ -25,9 +25,8 @@ This project follows feature/vertical-slice packaging for a CDC component (organ
 - `edu.jmaycon.cdcapp.model`: domain identifiers, records, and CDC result types.
 - `edu.jmaycon.cdcapp.trigger`: snapshot CDC triggers (e.g.; listener or scheduled jobs)
 - `edu.jmaycon.cdcapp.source`: Iceberg source tables from which the changes will be read.
-- `edu.jmaycon.cdcapp.mapping`: row-to-change mapping and schema evolution handling.
 - `edu.jmaycon.cdcapp.sink`: Kafka publishing and serialization wiring.
-- `edu.jmaycon.cdcapp.state`: cursor persistence (JDBC/S3).
+- `edu.jmaycon.cdcapp.state`: cursor persistence (filesystem).
 - `edu.jmaycon.cdcapp.runtime`: orchestration, runners, and app wiring.
 
 **Prerequisites**
@@ -48,10 +47,10 @@ This project follows feature/vertical-slice packaging for a CDC component (organ
    ```
 
 **Local UIs**
-- Hue (Trino query UI): `http://localhost:8888`
+- Apache Hue (Trino query UI): `http://localhost:8888`
 
 **SQL Examples**
-Use the following queries in Apache Hue or DBeaver by connecting to the local UI endpoint above.
+Use the following queries in Apache Hue or DBeaver by connecting to the UI endpoint above.
 
 ```sql
 SELECT * FROM iceberg.default.flight_tickets;
