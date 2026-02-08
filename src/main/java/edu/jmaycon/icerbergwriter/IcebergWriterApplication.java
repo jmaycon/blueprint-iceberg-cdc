@@ -66,9 +66,27 @@ public class IcebergWriterApplication implements CommandLineRunner {
 
         spark.sql("CREATE NAMESPACE IF NOT EXISTS rest.default");
 
-        df.writeTo("rest.default.flight_tickets")
-                .tableProperty("format-version", "2")
-                .createOrReplace();
+        String tempView = "incoming_flight_tickets";
+        df.createOrReplaceTempView(tempView);
+
+        String ddl = schema.toDDL();
+        spark.sql(
+                """
+                CREATE TABLE IF NOT EXISTS rest.default.flight_tickets (%s)
+                USING iceberg
+                TBLPROPERTIES ('format-version'='2')
+                """
+                        .formatted(ddl));
+
+        spark.sql(
+                """
+                MERGE INTO rest.default.flight_tickets AS t
+                USING %s AS s
+                ON t.ticket_uuid = s.ticket_uuid
+                WHEN MATCHED THEN UPDATE SET *
+                WHEN NOT MATCHED THEN INSERT *
+                """
+                        .formatted(tempView));
 
         long snapshotId = latestSnapshotId(spark);
         cdcSnapshotPublisher.publishSnapshot(snapshotId);

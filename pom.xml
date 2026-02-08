@@ -20,6 +20,8 @@
 		<avro.version>1.11.3</avro.version>
 		<iceberg.version>1.6.1</iceberg.version>
 		<spark.version>3.5.1</spark.version>
+		<scala.version>2.12.18</scala.version>
+		<scala.collection.compat.version>2.11.0</scala.collection.compat.version>
 		<hadoop.version>3.3.6</hadoop.version>
 		<servlet.version>4.0.1</servlet.version>
 		<jersey.version>2.39</jersey.version>
@@ -70,6 +72,16 @@
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-sql_2.12</artifactId>
 			<version>${spark.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.scala-lang</groupId>
+			<artifactId>scala-library</artifactId>
+			<version>${scala.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.scala-lang.modules</groupId>
+			<artifactId>scala-collection-compat_2.12</artifactId>
+			<version>${scala.collection.compat.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
@@ -140,6 +152,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<mainClass>edu.jmaycon.cdcapp.CdcApplication</mainClass>
 					<jvmArguments>
 						--add-exports=java.base/sun.nio.ch=ALL-UNNAMED
 						--add-opens=java.base/sun.nio.ch=ALL-UNNAMED

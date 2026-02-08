@@ -1,6 +1,8 @@
 spring:
   application:
     name: blueprint-iceberg-cdc
+  profiles:
+    default: changelog
 
 cdcapp:
   aws:
@@ -16,6 +18,17 @@ cdcapp:
   kafka:
     bootstrap-servers: localhost:9094
     topic: flight_tickets
+  iceberg:
+    catalog-uri: http://localhost:8181
+    warehouse: s3://analytics-warehouse
+    table: rest.default.flight_tickets
+    changelog-view: rest.default.flight_tickets_changelog
+    s3-endpoint: http://localhost:9000
+    s3-region: eu-central-1
+    s3-access-key: admin
+    s3-secret-key: admin123
+  state:
+    cursor-file: /tmp/cdcapp.snapshot.cursor
 
 downstreamconsumer:
   kafka:
@@ -23,10 +36,3 @@ downstreamconsumer:
     topic: flight_tickets
     group-id: downstream-consumer
     avro-specific-reader: false
-  iceberg:
-    catalog-uri: http://localhost:8181
-    warehouse: s3://analytics-warehouse
-    s3-endpoint: http://localhost:9000
-    s3-region: eu-central-1
-    s3-access-key: admin
-    s3-secret-key: admin123

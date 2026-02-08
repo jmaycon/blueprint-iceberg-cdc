@@ -8,6 +8,7 @@
 - Single responsibility: one reason to change for each class/module/method.
 - Platform independence: all filesystem paths must be OS-agnostic and configurable.
 - Dependency stability: only stable releases; verify coordinates in the primary registry.
+- Avoid try/catch that does nothing or only logs unless explicitly justified and confirmed.
 
 ## 2. Architecture Rules
 **Module Boundary Rules:**

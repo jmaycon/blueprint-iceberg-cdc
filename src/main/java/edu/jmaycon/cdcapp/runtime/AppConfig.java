@@ -2,14 +2,17 @@ package edu.jmaycon.cdcapp.runtime;
 
 import edu.jmaycon.cdcapp.sink.FlightTicketAvroSerializer;
 import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
+import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;
 import edu.jmaycon.cdcapp.source.IcebergChangelogReader;
 import edu.jmaycon.cdcapp.source.IcebergSnapshotReader;
 import edu.jmaycon.cdcapp.source.IcebergTableClient;
 import edu.jmaycon.cdcapp.source.SnapshotPlanner;
+import edu.jmaycon.cdcapp.state.CursorStore;
 import edu.jmaycon.cdcapp.trigger.SnapshotMessageParser;
 import edu.jmaycon.cdcapp.trigger.SqsSnapshotListener;
 import edu.playground.avro.FlightTicketAvro;
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.Map;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -17,6 +20,7 @@ import org.apache.spark.sql.SparkSession;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
@@ -44,6 +48,7 @@ public class AppConfig {
         return SparkSession.builder()
                 .appName("cdcapp")
                 .master("local[*]")
+                .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
                 .config("spark.sql.catalog.rest", "org.apache.iceberg.spark.SparkCatalog")
                 .config("spark.sql.catalog.rest.catalog-impl", "org.apache.iceberg.rest.RESTCatalog")
                 .config("spark.sql.catalog.rest.uri", iceberg.catalogUri())
@@ -93,13 +98,20 @@ public class AppConfig {
     }
 
     @Bean
-    public IcebergTableClient icebergTableClient(SparkSession sparkSession) {
-        return new IcebergTableClient(sparkSession);
+    public FlightTicketRowMapper flightTicketRowMapper() {
+        return new FlightTicketRowMapper();
     }
 
     @Bean
-    public IcebergChangelogReader icebergChangelogReader(IcebergTableClient icebergTableClient) {
-        return new IcebergChangelogReader(icebergTableClient);
+    public IcebergTableClient icebergTableClient(SparkSession sparkSession, FlightTicketRowMapper rowMapper) {
+        return new IcebergTableClient(sparkSession, rowMapper);
+    }
+
+    @Bean
+    public IcebergChangelogReader icebergChangelogReader(
+            IcebergTableClient icebergTableClient, CdcAppProperties properties) {
+        return new IcebergChangelogReader(
+                icebergTableClient, properties.iceberg().table());
     }
 
     @Bean
@@ -135,9 +147,35 @@ public class AppConfig {
     }
 
     @Bean
-    public CdcOrchestrator cdcOrchestrator(
-            IcebergSnapshotReader snapshotReader, KafkaChangePublisher kafkaChangePublisher) {
-        return new CdcOrchestrator(snapshotReader, kafkaChangePublisher);
+    public CursorStore cursorStore(CdcAppProperties properties) {
+        return new CursorStore(Path.of(properties.state().cursorFile()));
+    }
+
+    @Bean
+    @Profile("changelog")
+    public CdcChangeProcessor changelogCdcProcessor(
+            SparkSession sparkSession,
+            FlightTicketRowMapper rowMapper,
+            KafkaChangePublisher kafkaChangePublisher,
+            CursorStore cursorStore,
+            CdcAppProperties properties) {
+        return new ChangelogCdcProcessor(
+                sparkSession, rowMapper, kafkaChangePublisher, cursorStore, properties.iceberg());
+    }
+
+    @Bean
+    @Profile("streaming")
+    public CdcChangeProcessor streamingCdcProcessor(
+            SparkSession sparkSession,
+            FlightTicketRowMapper rowMapper,
+            KafkaChangePublisher kafkaChangePublisher,
+            CdcAppProperties properties) {
+        return new StreamingCdcProcessor(sparkSession, rowMapper, kafkaChangePublisher, properties.iceberg());
+    }
+
+    @Bean
+    public CdcOrchestrator cdcOrchestrator(CdcChangeProcessor changeProcessor) {
+        return new CdcOrchestrator(changeProcessor);
     }
 
     @Bean
