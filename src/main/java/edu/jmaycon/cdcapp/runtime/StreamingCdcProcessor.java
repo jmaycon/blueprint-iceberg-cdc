@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.streaming.StreamingQuery;
 
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class StreamingCdcProcessor implements CdcChangeProcessor {
@@ -19,18 +18,17 @@ class StreamingCdcProcessor implements CdcChangeProcessor {
     private final KafkaChangePublisher changePublisher;
     private final CdcAppProperties.Iceberg iceberg;
     private final AtomicBoolean started = new AtomicBoolean(false);
-    private volatile StreamingQuery streamingQuery;
 
     @Override
     public void process(SnapshotId snapshotId) {
         if (!started.compareAndSet(false, true)) {
-            return;
+            throw new IllegalStateException("Streaming query already started");
         }
 
         Dataset<Row> stream = sparkSession.readStream().format("iceberg").load(iceberg.table());
 
         try {
-            streamingQuery = stream.writeStream()
+            stream.writeStream()
                     .foreachBatch((batch, batchId) -> {
                         batch.collectAsList().forEach(row -> changePublisher.publish(rowMapper.map(row)));
                     })
