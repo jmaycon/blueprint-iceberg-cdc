@@ -1,10 +1,9 @@
-package edu.jmaycon.cdcapp.runtime;
+package edu.jmaycon.cdcapp.core;
 
 import edu.jmaycon.cdcapp.model.SnapshotId;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+@RequiredArgsConstructor
 public class CdcOrchestrator {
     private final CdcChangeProcessor changeProcessor;
 

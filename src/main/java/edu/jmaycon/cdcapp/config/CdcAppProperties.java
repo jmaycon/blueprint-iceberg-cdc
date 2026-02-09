@@ -1,4 +1,4 @@
-package edu.jmaycon.cdcapp.runtime;
+package edu.jmaycon.cdcapp.config;
 
 import lombok.Builder;
 import org.springframework.boot.context.properties.ConfigurationProperties;

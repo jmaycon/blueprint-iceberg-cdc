@@ -1,5 +1,7 @@
 package edu.jmaycon.cdcapp.runtime;
 
+import edu.jmaycon.cdcapp.config.CdcAppProperties;
+import edu.jmaycon.cdcapp.core.CdcChangeProcessor;
 import edu.jmaycon.cdcapp.model.SnapshotId;
 import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
 import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;

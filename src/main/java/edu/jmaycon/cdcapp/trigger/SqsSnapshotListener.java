@@ -1,7 +1,7 @@
 package edu.jmaycon.cdcapp.trigger;
 
-import edu.jmaycon.cdcapp.runtime.CdcAppProperties;
-import edu.jmaycon.cdcapp.runtime.CdcOrchestrator;
+import edu.jmaycon.cdcapp.config.CdcAppProperties;
+import edu.jmaycon.cdcapp.core.CdcOrchestrator;
 import lombok.Builder;
 import org.springframework.scheduling.annotation.Scheduled;
 import software.amazon.awssdk.services.sqs.SqsClient;
