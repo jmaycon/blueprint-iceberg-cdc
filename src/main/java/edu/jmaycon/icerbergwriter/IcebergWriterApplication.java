@@ -70,23 +70,19 @@ public class IcebergWriterApplication implements CommandLineRunner {
         df.createOrReplaceTempView(tempView);
 
         String ddl = schema.toDDL();
-        spark.sql(
-                """
+        spark.sql("""
                 CREATE TABLE IF NOT EXISTS rest.default.flight_tickets (%s)
                 USING iceberg
                 TBLPROPERTIES ('format-version'='2')
-                """
-                        .formatted(ddl));
+                """.formatted(ddl));
 
-        spark.sql(
-                """
+        spark.sql("""
                 MERGE INTO rest.default.flight_tickets AS t
                 USING %s AS s
                 ON t.ticket_uuid = s.ticket_uuid
                 WHEN MATCHED THEN UPDATE SET *
                 WHEN NOT MATCHED THEN INSERT *
-                """
-                        .formatted(tempView));
+                """.formatted(tempView));
 
         long snapshotId = latestSnapshotId(spark);
         cdcSnapshotPublisher.publishSnapshot(snapshotId);
@@ -165,8 +161,7 @@ public class IcebergWriterApplication implements CommandLineRunner {
     }
 
     private static long latestSnapshotId(SparkSession spark) {
-        Dataset<Row> snapshotIds = spark.sql(
-                """
+        Dataset<Row> snapshotIds = spark.sql("""
                 SELECT snapshot_id
                 FROM rest.default.flight_tickets.snapshots
                 ORDER BY committed_at DESC

@@ -63,14 +63,12 @@ public class ChangelogCdcProcessor implements CdcChangeProcessor {
 
     private void createChangelogView(SnapshotId startSnapshot, SnapshotId endSnapshot) {
         String tempViewName = tempChangelogViewName();
-        String statement =
-                """
+        String statement = """
                 CALL rest.system.create_changelog_view(
                   '%s',
                   '%s',
                   map('start-snapshot-id','%d','end-snapshot-id','%d'))
-                """
-                        .formatted(iceberg.table(), tempViewName, startSnapshot.value(), endSnapshot.value());
+                """.formatted(iceberg.table(), tempViewName, startSnapshot.value(), endSnapshot.value());
         sparkSession.sql(statement);
     }
 
