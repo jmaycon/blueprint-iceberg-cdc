@@ -65,6 +65,9 @@ String message = "Error occurred\nPlease try again\nContact support";
     - When using `@Builder` on a class, `@RequiredArgsConstructor` is still needed for dependency injection or if the class is instantiated via constructor elsewhere.
     - If `@Builder` covers all construction needs, `@RequiredArgsConstructor` *may* be omitted, but `@AllArgsConstructor` (package-private) is typically required by `@Builder`.
 - Prevent telescoping constructors while maintaining immutability.
+- **Custom Exceptions:**
+    - Use static inner classes for custom exceptions to keep them close to their usage context.
+    - Exceptions should be expressive and specific to the failure mode.
 
 ## 5. Testing Standards
 - Unit tests for all business logic.
