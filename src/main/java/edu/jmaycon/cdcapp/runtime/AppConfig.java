@@ -1,6 +1,5 @@
 package edu.jmaycon.cdcapp.runtime;
 
-import edu.jmaycon.cdcapp.sink.FlightTicketAvroSerializer;
 import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
 import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;
 import edu.jmaycon.cdcapp.source.IcebergChangelogReader;
@@ -11,6 +10,8 @@ import edu.jmaycon.cdcapp.state.CursorStore;
 import edu.jmaycon.cdcapp.trigger.SnapshotMessageParser;
 import edu.jmaycon.cdcapp.trigger.SqsSnapshotListener;
 import edu.playground.avro.FlightTicketAvro;
+import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Map;
@@ -130,7 +131,9 @@ public class AppConfig {
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
                 StringSerializer.class,
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                FlightTicketAvroSerializer.class);
+                KafkaAvroSerializer.class,
+                AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
+                properties.kafka().schemaRegistryUrl());
         return new DefaultKafkaProducerFactory<>(config);
     }
 

@@ -13,7 +13,7 @@ public record CdcAppProperties(Aws aws, Sqs sqs, Kafka kafka, Iceberg iceberg, S
     @Builder
     public record Sqs(String queueName, long pollDelay, int maxMessages, int waitTimeSeconds) {}
 
-    public record Kafka(String bootstrapServers, String topic) {}
+    public record Kafka(String bootstrapServers, String topic, String schemaRegistryUrl) {}
 
     @Builder
     public record Iceberg(

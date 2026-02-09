@@ -18,6 +18,7 @@ cdcapp:
   kafka:
     bootstrap-servers: localhost:9094
     topic: flight_tickets
+    schema-registry-url: http://localhost:8081
   iceberg:
     catalog-uri: http://localhost:8181
     warehouse: s3://analytics-warehouse
