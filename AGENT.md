@@ -160,5 +160,14 @@ public class SearchConfig {
     - Within a class or record, order methods with the same access modifier by relevance and meaning (most significant business logic first).
     - All static members (static fields, static methods, static initialization blocks) and static inner classes MUST be placed at the bottom of the file.
 
+## 11. Naming Conventions
+- **Class Suffixes**: Use descriptive suffixes to indicate the role of a class or interface:
+    - `Handler`: For interfaces or classes that handle events or specific actions (e.g., `SnapshotHandler`).
+    - `Listener`: For components that react to external triggers or messages (e.g., `SqsSnapshotListener`).
+    - `Mapper`: For components that transform data between different representations (e.g., `FlightTicketRowMapper`).
+    - `Reader`: For components that fetch data from external sources (e.g., `IcebergSnapshotReader`).
+    - `Config`: For Spring `@Configuration` classes (e.g., `AppConfig`).
+    - `Properties`: For `@ConfigurationProperties` classes (e.g., `CdcAppProperties`).
+
 ---
-**Version**: 1.11.0 | **Ratified**: 2025-10-25 | **Last Amended**: 2025-10-25
+**Version**: 1.12.0 | **Ratified**: 2025-10-25 | **Last Amended**: 2026-02-10
