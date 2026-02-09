@@ -15,7 +15,7 @@ import org.apache.spark.sql.SparkSession;
 
 @Builder
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-public class ChangelogCdcProcessor implements CdcChangeProcessor {
+class ChangelogCdcProcessor implements CdcChangeProcessor {
     private final SparkSession sparkSession;
     private final FlightTicketRowMapper rowMapper;
     private final KafkaChangePublisher changePublisher;
