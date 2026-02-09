@@ -8,7 +8,7 @@
 - Single responsibility: one reason to change for each class/module/method.
 - Platform independence: all filesystem paths must be OS-agnostic and configurable.
 - Dependency stability: only stable releases; verify coordinates in the primary registry.
-- Avoid try/catch that does nothing or only logs unless explicitly justified and confirmed.
+- Avoid try/catch blocks that suppress exceptions. Every exception MUST be either rethrown (potentially wrapped) or logged with the appropriate level (ERROR/WARN) depending on the context. Exceptions must NEVER be silently omitted.
 
 ## 2. Architecture Rules
 **Module Boundary Rules:**
@@ -68,6 +68,7 @@ String message = "Error occurred\nPlease try again\nContact support";
 - **Custom Exceptions:**
     - Use static inner classes for custom exceptions to keep them close to their usage context.
     - Exceptions should be expressive and specific to the failure mode.
+    - All exceptions must be handled: either thrown to the caller or logged with a proper level (e.g., SLF4J log.error). Silently ignoring exceptions is strictly FORBIDDEN.
 
 ## 5. Testing Standards
 - Unit tests for all business logic.
