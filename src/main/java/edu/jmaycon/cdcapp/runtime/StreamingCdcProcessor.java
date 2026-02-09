@@ -10,14 +10,29 @@ import lombok.RequiredArgsConstructor;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.streaming.StreamingQuery;
 
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-class StreamingCdcProcessor implements CdcChangeProcessor {
+class StreamingCdcProcessor implements CdcChangeProcessor, AutoCloseable {
     private final SparkSession sparkSession;
     private final FlightTicketRowMapper rowMapper;
     private final KafkaChangePublisher changePublisher;
     private final CdcAppProperties.Iceberg iceberg;
     private final AtomicBoolean started = new AtomicBoolean(false);
+    private volatile StreamingQuery streamingQuery;
+
+    @Override
+    public void close() {
+        if (started.compareAndSet(true, false)) {
+            if (streamingQuery != null) {
+                try {
+                    streamingQuery.stop();
+                } catch (TimeoutException e) {
+                    // best effort
+                }
+            }
+        }
+    }
 
     @Override
     public void process(SnapshotId snapshotId) {
@@ -28,7 +43,7 @@ class StreamingCdcProcessor implements CdcChangeProcessor {
         Dataset<Row> stream = sparkSession.readStream().format("iceberg").load(iceberg.table());
 
         try {
-            stream.writeStream()
+            streamingQuery = stream.writeStream()
                     .foreachBatch((batch, batchId) -> {
                         batch.collectAsList().forEach(row -> changePublisher.publish(rowMapper.map(row)));
                     })

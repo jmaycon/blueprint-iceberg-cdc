@@ -159,8 +159,13 @@ public class AppConfig {
             KafkaChangePublisher kafkaChangePublisher,
             CursorStore cursorStore,
             CdcAppProperties properties) {
-        return new ChangelogCdcProcessor(
-                sparkSession, rowMapper, kafkaChangePublisher, cursorStore, properties.iceberg());
+        return ChangelogCdcProcessor.builder()
+                .sparkSession(sparkSession)
+                .rowMapper(rowMapper)
+                .changePublisher(kafkaChangePublisher)
+                .cursorStore(cursorStore)
+                .iceberg(properties.iceberg())
+                .build();
     }
 
     @Bean
@@ -185,6 +190,12 @@ public class AppConfig {
             SnapshotMessageParser snapshotMessageParser,
             CdcOrchestrator orchestrator,
             CdcAppProperties properties) {
-        return new SqsSnapshotListener(sqsClient, sqsQueueUrl, snapshotMessageParser, orchestrator, properties.sqs());
+        return SqsSnapshotListener.builder()
+                .sqsClient(sqsClient)
+                .queueUrl(sqsQueueUrl)
+                .messageParser(snapshotMessageParser)
+                .orchestrator(orchestrator)
+                .properties(properties.sqs())
+                .build();
     }
 }

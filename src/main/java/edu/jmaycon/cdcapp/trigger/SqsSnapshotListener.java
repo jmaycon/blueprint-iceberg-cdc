@@ -3,14 +3,12 @@ package edu.jmaycon.cdcapp.trigger;
 import edu.jmaycon.cdcapp.runtime.CdcAppProperties;
 import edu.jmaycon.cdcapp.runtime.CdcOrchestrator;
 import lombok.Builder;
-import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
 @Builder
-@RequiredArgsConstructor
 public class SqsSnapshotListener {
     private final SqsClient sqsClient;
     private final String queueUrl;

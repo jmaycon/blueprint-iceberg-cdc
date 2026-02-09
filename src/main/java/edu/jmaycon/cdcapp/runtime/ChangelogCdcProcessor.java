@@ -6,15 +6,12 @@ import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;
 import edu.jmaycon.cdcapp.state.CursorStore;
 import edu.playground.avro.FlightTicketAvro;
 import java.util.Optional;
-import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.RequiredArgsConstructor;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
 @Builder
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class ChangelogCdcProcessor implements CdcChangeProcessor {
     private final SparkSession sparkSession;
     private final FlightTicketRowMapper rowMapper;

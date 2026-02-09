@@ -62,6 +62,8 @@ String message = "Error occurred\nPlease try again\nContact support";
 ## 4. Object Construction
 - Use Lombok `@RequiredArgsConstructor` for constructor generation.
 - Classes or records with 4 or more attributes MUST also use Lombok `@Builder`.
+    - When using `@Builder` on a class, `@RequiredArgsConstructor` is still needed for dependency injection or if the class is instantiated via constructor elsewhere.
+    - If `@Builder` covers all construction needs, `@RequiredArgsConstructor` *may* be omitted, but `@AllArgsConstructor` (package-private) is typically required by `@Builder`.
 - Prevent telescoping constructors while maintaining immutability.
 
 ## 5. Testing Standards
