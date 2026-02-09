@@ -9,11 +9,13 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.streaming.StreamingQuery;
 
+@Slf4j
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class StreamingCdcProcessor implements CdcChangeProcessor, AutoCloseable {
     private final SparkSession sparkSession;
@@ -30,7 +32,7 @@ class StreamingCdcProcessor implements CdcChangeProcessor, AutoCloseable {
                 try {
                     streamingQuery.stop();
                 } catch (TimeoutException e) {
-                    // best effort
+                    log.warn("Timed out while stopping streaming query", e);
                 }
             }
         }

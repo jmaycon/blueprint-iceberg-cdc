@@ -7,12 +7,13 @@ import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
 import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;
 import edu.jmaycon.cdcapp.state.CursorStore;
 import edu.playground.avro.FlightTicketAvro;
-import java.util.Optional;
 import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
+@Slf4j
 @Builder
 class ChangelogCdcProcessor implements CdcChangeProcessor {
     private final SparkSession sparkSession;
@@ -23,24 +24,25 @@ class ChangelogCdcProcessor implements CdcChangeProcessor {
 
     @Override
     public void process(SnapshotId snapshotId) {
-        Optional<SnapshotId> previousSnapshot = cursorStore.load();
-        if (previousSnapshot.isEmpty()) {
-            publishSnapshotSnapshot(snapshotId);
-            cursorStore.save(snapshotId);
-            return;
-        }
-
-        SnapshotId startSnapshot = previousSnapshot.get();
-        try {
-            createChangelogView(startSnapshot, snapshotId);
-            Dataset<Row> changes = sparkSession.table(tempChangelogViewName());
-            changes.collectAsList().forEach(this::publishChange);
-            cursorStore.save(snapshotId);
-        } catch (IllegalArgumentException ex) {
-            // Fallback to a full snapshot when the stored cursor isn't an ancestor.
-            publishSnapshotSnapshot(snapshotId);
-            cursorStore.save(snapshotId);
-        }
+        cursorStore.load().ifPresentOrElse(
+                startSnapshot -> {
+                    try {
+                        createChangelogView(startSnapshot, snapshotId);
+                        Dataset<Row> changes = sparkSession.table(tempChangelogViewName());
+                        changes.collectAsList().forEach(this::publishChange);
+                        cursorStore.save(snapshotId);
+                    } catch (IllegalArgumentException ex) {
+                        log.warn(
+                                "Stored snapshot cursor {} is not an ancestor of current snapshot {}. Falling back to full snapshot.",
+                                startSnapshot, snapshotId, ex);
+                        publishSnapshotSnapshot(snapshotId);
+                        cursorStore.save(snapshotId);
+                    }
+                },
+                () -> {
+                    publishSnapshotSnapshot(snapshotId);
+                    cursorStore.save(snapshotId);
+                });
     }
 
     private void publishSnapshotSnapshot(SnapshotId snapshotId) {

@@ -1,16 +1,13 @@
 package edu.jmaycon.icerbergwriter;
 
+import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
+@RequiredArgsConstructor
 public final class CdcSnapshotPublisher {
     private final SqsClient sqsClient;
     private final String queueUrl;
-
-    public CdcSnapshotPublisher(SqsClient sqsClient, String queueUrl) {
-        this.sqsClient = sqsClient;
-        this.queueUrl = queueUrl;
-    }
 
     public void publishSnapshot(long snapshotId) {
         SendMessageRequest request = SendMessageRequest.builder()
