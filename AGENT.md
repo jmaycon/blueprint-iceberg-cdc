@@ -27,6 +27,11 @@
 - One business concept per class.
 - Fail-fast validation.
 
+**Import Rules:**
+- Use explicit/qualified imports (e.g., `import java.util.List;`) whenever possible.
+- Avoid wildcard imports (`import java.util.*;`).
+- Avoid fully qualified names in code unless necessary for disambiguation.
+
 ## 3. Java-Specific Rules
 **Optional Usage (MANDATORY):**
 - Optional types are ONLY permitted as method return types.
