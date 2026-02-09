@@ -1,13 +1,14 @@
 package edu.jmaycon.cdcapp.runtime;
 
+import edu.jmaycon.cdcapp.application.CdcChangeProcessor;
 import edu.jmaycon.cdcapp.config.CdcAppProperties;
-import edu.jmaycon.cdcapp.core.CdcChangeProcessor;
 import edu.jmaycon.cdcapp.model.SnapshotId;
 import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
 import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;
 import edu.jmaycon.cdcapp.state.CursorStore;
 import edu.playground.avro.FlightTicketAvro;
 import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -15,6 +16,7 @@ import org.apache.spark.sql.SparkSession;
 
 @Slf4j
 @Builder
+@RequiredArgsConstructor
 class ChangelogCdcProcessor implements CdcChangeProcessor {
     private final SparkSession sparkSession;
     private final FlightTicketRowMapper rowMapper;
@@ -24,28 +26,29 @@ class ChangelogCdcProcessor implements CdcChangeProcessor {
 
     @Override
     public void process(SnapshotId snapshotId) {
-        cursorStore.load().ifPresentOrElse(
-                startSnapshot -> {
-                    try {
-                        createChangelogView(startSnapshot, snapshotId);
-                        Dataset<Row> changes = sparkSession.table(tempChangelogViewName());
-                        changes.collectAsList().forEach(this::publishChange);
-                        cursorStore.save(snapshotId);
-                    } catch (IllegalArgumentException ex) {
-                        log.warn(
-                                "Stored snapshot cursor {} is not an ancestor of current snapshot {}. Falling back to full snapshot.",
-                                startSnapshot, snapshotId, ex);
-                        publishSnapshotSnapshot(snapshotId);
-                        cursorStore.save(snapshotId);
-                    }
-                },
-                () -> {
-                    publishSnapshotSnapshot(snapshotId);
-                    cursorStore.save(snapshotId);
-                });
+        SnapshotId startSnapshot = cursorStore.load().orElse(null);
+        if (startSnapshot != null) {
+            try {
+                createChangelogView(startSnapshot, snapshotId);
+                Dataset<Row> changes = sparkSession.table(tempChangelogViewName());
+                changes.collectAsList().forEach(this::publishChange);
+                cursorStore.save(snapshotId);
+            } catch (IllegalArgumentException ex) {
+                log.warn(
+                        "Stored snapshot cursor {} is not an ancestor of current snapshot {}. Falling back to full snapshot.",
+                        startSnapshot,
+                        snapshotId,
+                        ex);
+                publishFullSnapshot(snapshotId);
+                cursorStore.save(snapshotId);
+            }
+        } else {
+            publishFullSnapshot(snapshotId);
+            cursorStore.save(snapshotId);
+        }
     }
 
-    private void publishSnapshotSnapshot(SnapshotId snapshotId) {
+    private void publishFullSnapshot(SnapshotId snapshotId) {
         Dataset<Row> snapshot = sparkSession
                 .read()
                 .format("iceberg")

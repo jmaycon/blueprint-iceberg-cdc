@@ -1,4 +1,4 @@
-package edu.jmaycon.cdcapp.core;
+package edu.jmaycon.cdcapp.application;
 
 import edu.jmaycon.cdcapp.model.SnapshotId;
 import lombok.RequiredArgsConstructor;

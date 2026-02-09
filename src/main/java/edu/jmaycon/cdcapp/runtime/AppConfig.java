@@ -1,8 +1,8 @@
 package edu.jmaycon.cdcapp.runtime;
 
+import edu.jmaycon.cdcapp.application.CdcChangeProcessor;
+import edu.jmaycon.cdcapp.application.CdcOrchestrator;
 import edu.jmaycon.cdcapp.config.CdcAppProperties;
-import edu.jmaycon.cdcapp.core.CdcChangeProcessor;
-import edu.jmaycon.cdcapp.core.CdcOrchestrator;
 import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
 import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;
 import edu.jmaycon.cdcapp.source.IcebergChangelogReader;
@@ -39,12 +39,6 @@ import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 @EnableScheduling
 @EnableConfigurationProperties(CdcAppProperties.class)
 public class AppConfig {
-
-    static {
-        System.setProperty("aws.region", "eu-central-1");
-        System.setProperty("aws.accessKeyId", "admin");
-        System.setProperty("aws.secretAccessKey", "admin123");
-    }
 
     @Bean
     public SparkSession sparkSession(CdcAppProperties properties) {
@@ -181,7 +175,12 @@ public class AppConfig {
             FlightTicketRowMapper rowMapper,
             KafkaChangePublisher kafkaChangePublisher,
             CdcAppProperties properties) {
-        return new StreamingCdcProcessor(sparkSession, rowMapper, kafkaChangePublisher, properties.iceberg());
+        return StreamingCdcProcessor.builder()
+                .sparkSession(sparkSession)
+                .rowMapper(rowMapper)
+                .changePublisher(kafkaChangePublisher)
+                .iceberg(properties.iceberg())
+                .build();
     }
 
     @Bean
@@ -203,5 +202,11 @@ public class AppConfig {
                 .orchestrator(orchestrator)
                 .properties(properties.sqs())
                 .build();
+    }
+
+    static {
+        System.setProperty("aws.region", "eu-central-1");
+        System.setProperty("aws.accessKeyId", "admin");
+        System.setProperty("aws.secretAccessKey", "admin123");
     }
 }

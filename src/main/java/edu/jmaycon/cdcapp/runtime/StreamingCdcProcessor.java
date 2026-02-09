@@ -1,14 +1,14 @@
 package edu.jmaycon.cdcapp.runtime;
 
+import edu.jmaycon.cdcapp.application.CdcChangeProcessor;
 import edu.jmaycon.cdcapp.config.CdcAppProperties;
-import edu.jmaycon.cdcapp.core.CdcChangeProcessor;
 import edu.jmaycon.cdcapp.model.SnapshotId;
 import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
 import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
+import java.util.concurrent.atomic.AtomicReference;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -16,21 +16,47 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.streaming.StreamingQuery;
 
 @Slf4j
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+@Builder
 class StreamingCdcProcessor implements CdcChangeProcessor, AutoCloseable {
     private final SparkSession sparkSession;
     private final FlightTicketRowMapper rowMapper;
     private final KafkaChangePublisher changePublisher;
     private final CdcAppProperties.Iceberg iceberg;
+
+    @Builder.Default
     private final AtomicBoolean started = new AtomicBoolean(false);
-    private volatile StreamingQuery streamingQuery;
+
+    @Builder.Default
+    private final AtomicReference<StreamingQuery> streamingQuery = new AtomicReference<>();
+
+    @Override
+    public void process(SnapshotId snapshotId) {
+        if (!started.compareAndSet(false, true)) {
+            throw new IllegalStateException("Streaming query already started");
+        }
+        log.info("Starting streaming CDC processor for snapshot trigger: {}", snapshotId);
+
+        Dataset<Row> stream = sparkSession.readStream().format("iceberg").load(iceberg.table());
+
+        try {
+            streamingQuery.set(stream.writeStream()
+                    .foreachBatch((batch, batchId) -> {
+                        log.debug("Processing streaming batch {}", batchId);
+                        batch.collectAsList().forEach(this::publishChange);
+                    })
+                    .start());
+        } catch (TimeoutException ex) {
+            throw new IllegalStateException("Timed out while starting streaming query", ex);
+        }
+    }
 
     @Override
     public void close() {
         if (started.compareAndSet(true, false)) {
-            if (streamingQuery != null) {
+            StreamingQuery query = streamingQuery.get();
+            if (query != null) {
                 try {
-                    streamingQuery.stop();
+                    query.stop();
                 } catch (TimeoutException e) {
                     log.warn("Timed out while stopping streaming query", e);
                 }
@@ -38,22 +64,13 @@ class StreamingCdcProcessor implements CdcChangeProcessor, AutoCloseable {
         }
     }
 
-    @Override
-    public void process(SnapshotId snapshotId) {
-        if (!started.compareAndSet(false, true)) {
-            throw new IllegalStateException("Streaming query already started");
+    private void publishChange(Row row) {
+        String changeType = row.getString(row.fieldIndex("_change_type"));
+        String ticketId = row.getString(row.fieldIndex("ticket_uuid"));
+        if ("DELETE".equals(changeType) || "UPDATE_BEFORE".equals(changeType)) {
+            changePublisher.publishTombstone(ticketId);
+            return;
         }
-
-        Dataset<Row> stream = sparkSession.readStream().format("iceberg").load(iceberg.table());
-
-        try {
-            streamingQuery = stream.writeStream()
-                    .foreachBatch((batch, batchId) -> {
-                        batch.collectAsList().forEach(row -> changePublisher.publish(rowMapper.map(row)));
-                    })
-                    .start();
-        } catch (TimeoutException ex) {
-            throw new IllegalStateException("Timed out while starting streaming query", ex);
-        }
+        changePublisher.publish(rowMapper.map(row));
     }
 }

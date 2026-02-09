@@ -46,6 +46,9 @@
 - Preferred visibility order: `private` > `package-private` (default) > `protected` > `public`.
 - Only use `public` if absolutely necessary (e.g., interface methods, API entry points).
 
+**Lambda Usage (MANDATORY):**
+- Avoid calling methods that take two or more lambda arguments in a row (e.g., `Optional.ifPresentOrElse(..)`). Use traditional `isPresent()` / `if` or other constructs to maintain high readability.
+
 **Required Pattern:**
 ```java
 String message = """
@@ -151,6 +154,11 @@ public class SearchConfig {
 - `fix(api): correct checksum calculation`
 - `refactor: simplify request pipeline`
 - `build: update dependencies`
+
+## 10. Code Organization
+- **Member Ordering**:
+    - Within a class or record, order methods with the same access modifier by relevance and meaning (most significant business logic first).
+    - All static members (static fields, static methods, static initialization blocks) and static inner classes MUST be placed at the bottom of the file.
 
 ---
 **Version**: 1.11.0 | **Ratified**: 2025-10-25 | **Last Amended**: 2025-10-25

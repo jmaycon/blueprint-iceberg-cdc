@@ -25,12 +25,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class IcebergWriterApplication implements CommandLineRunner {
     private final CdcSnapshotPublisher cdcSnapshotPublisher;
 
-    static {
-        System.setProperty("aws.region", "eu-central-1");
-        System.setProperty("aws.accessKeyId", "admin");
-        System.setProperty("aws.secretAccessKey", "admin123");
-    }
-
     public IcebergWriterApplication(CdcSnapshotPublisher cdcSnapshotPublisher) {
         this.cdcSnapshotPublisher = cdcSnapshotPublisher;
     }
@@ -169,5 +163,11 @@ public class IcebergWriterApplication implements CommandLineRunner {
                 """);
         Row row = snapshotIds.collectAsList().get(0);
         return row.getLong(0);
+    }
+
+    static {
+        System.setProperty("aws.region", "eu-central-1");
+        System.setProperty("aws.accessKeyId", "admin");
+        System.setProperty("aws.secretAccessKey", "admin123");
     }
 }
