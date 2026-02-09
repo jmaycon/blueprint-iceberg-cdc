@@ -5,11 +5,15 @@ import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
 import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.streaming.StreamingQuery;
 
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public class StreamingCdcProcessor implements CdcChangeProcessor {
     private final SparkSession sparkSession;
     private final FlightTicketRowMapper rowMapper;
@@ -18,15 +22,13 @@ public class StreamingCdcProcessor implements CdcChangeProcessor {
     private final AtomicBoolean started = new AtomicBoolean(false);
     private volatile StreamingQuery streamingQuery;
 
-    public StreamingCdcProcessor(
+    @Builder
+    public static StreamingCdcProcessor create(
             SparkSession sparkSession,
             FlightTicketRowMapper rowMapper,
             KafkaChangePublisher changePublisher,
             CdcAppProperties.Iceberg iceberg) {
-        this.sparkSession = sparkSession;
-        this.rowMapper = rowMapper;
-        this.changePublisher = changePublisher;
-        this.iceberg = iceberg;
+        return new StreamingCdcProcessor(sparkSession, rowMapper, changePublisher, iceberg);
     }
 
     @Override

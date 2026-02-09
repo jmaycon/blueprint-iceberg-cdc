@@ -37,6 +37,10 @@
 - Use text blocks for any multi-line string literal.
 - Traditional `\n` concatenation or `StringBuilder` for static multi-line strings is FORBIDDEN.
 
+**Visibility Modifiers:**
+- Preferred visibility order: `private` > `package-private` (default) > `protected` > `public`.
+- Only use `public` if absolutely necessary (e.g., interface methods, API entry points).
+
 **Required Pattern:**
 ```java
 String message = """
@@ -51,7 +55,8 @@ String message = "Error occurred\nPlease try again\nContact support";
 ```
 
 ## 4. Object Construction
-- Classes or records with more than 3 attributes MUST use Lombok `@Builder`.
+- Use Lombok `@RequiredArgsConstructor` for constructor generation.
+- Classes or records with 4 or more attributes MUST also use Lombok `@Builder`.
 - Prevent telescoping constructors while maintaining immutability.
 
 ## 5. Testing Standards

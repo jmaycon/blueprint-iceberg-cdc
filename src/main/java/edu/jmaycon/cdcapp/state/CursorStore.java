@@ -5,13 +5,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class CursorStore {
     private final Path cursorPath;
-
-    public CursorStore(Path cursorPath) {
-        this.cursorPath = cursorPath;
-    }
 
     public Optional<SnapshotId> load() {
         if (!Files.exists(cursorPath)) {
