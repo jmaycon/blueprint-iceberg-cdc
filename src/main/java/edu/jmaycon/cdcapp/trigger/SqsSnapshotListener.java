@@ -1,6 +1,5 @@
 package edu.jmaycon.cdcapp.trigger;
 
-import edu.jmaycon.cdcapp.application.CdcOrchestrator;
 import edu.jmaycon.cdcapp.config.CdcAppProperties;
 import lombok.Builder;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -13,7 +12,7 @@ public class SqsSnapshotListener {
     private final SqsClient sqsClient;
     private final String queueUrl;
     private final SnapshotMessageParser messageParser;
-    private final CdcOrchestrator orchestrator;
+    private final SnapshotHandler orchestrator;
     private final CdcAppProperties.Sqs properties;
 
     @Scheduled(fixedDelayString = "${cdcapp.sqs.poll-delay}")
@@ -24,7 +23,7 @@ public class SqsSnapshotListener {
                 .maxNumberOfMessages(properties.maxMessages())
                 .build();
         sqsClient.receiveMessage(request).messages().forEach(message -> {
-            orchestrator.process(messageParser.parse(message.body()));
+            orchestrator.handle(messageParser.parse(message.body()));
             sqsClient.deleteMessage(DeleteMessageRequest.builder()
                     .queueUrl(queueUrl)
                     .receiptHandle(message.receiptHandle())

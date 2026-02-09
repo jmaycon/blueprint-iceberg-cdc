@@ -10,6 +10,7 @@ import edu.jmaycon.cdcapp.source.IcebergSnapshotReader;
 import edu.jmaycon.cdcapp.source.IcebergTableClient;
 import edu.jmaycon.cdcapp.source.SnapshotPlanner;
 import edu.jmaycon.cdcapp.state.CursorStore;
+import edu.jmaycon.cdcapp.trigger.SnapshotHandler;
 import edu.jmaycon.cdcapp.trigger.SnapshotMessageParser;
 import edu.jmaycon.cdcapp.trigger.SqsSnapshotListener;
 import edu.playground.avro.FlightTicketAvro;
@@ -193,7 +194,7 @@ public class AppConfig {
             SqsClient sqsClient,
             String sqsQueueUrl,
             SnapshotMessageParser snapshotMessageParser,
-            CdcOrchestrator orchestrator,
+            SnapshotHandler orchestrator,
             CdcAppProperties properties) {
         return SqsSnapshotListener.builder()
                 .sqsClient(sqsClient)
