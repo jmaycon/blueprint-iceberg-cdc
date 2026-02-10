@@ -1,7 +1,7 @@
 package edu.jmaycon.cdcapp.application;
 
-import edu.jmaycon.cdcapp.model.SnapshotId;
+import edu.jmaycon.cdcapp.model.SnapshotInterval;
 
-interface CdcChangeProcessor {
-    void process(SnapshotId from, SnapshotId to);
+public interface CdcChangeProcessor {
+    void process(SnapshotInterval interval);
 }

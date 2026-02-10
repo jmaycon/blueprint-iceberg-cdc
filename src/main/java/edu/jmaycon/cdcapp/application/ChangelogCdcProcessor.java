@@ -1,6 +1,7 @@
 package edu.jmaycon.cdcapp.application;
 
 import edu.jmaycon.cdcapp.model.SnapshotId;
+import edu.jmaycon.cdcapp.model.SnapshotInterval;
 import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
 import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;
 import edu.jmaycon.cdcapp.state.CursorStore;
@@ -24,7 +25,9 @@ class ChangelogCdcProcessor implements CdcChangeProcessor {
     private final String changelogView;
 
     @Override
-    public void process(SnapshotId from, SnapshotId to) {
+    public void process(SnapshotInterval interval) {
+        SnapshotId from = interval.from();
+        SnapshotId to = interval.to();
         if (from != null) {
             try {
                 createChangelogView(from, to);

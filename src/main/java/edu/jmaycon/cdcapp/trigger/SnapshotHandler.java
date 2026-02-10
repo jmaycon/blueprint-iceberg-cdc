@@ -1,7 +1,7 @@
 package edu.jmaycon.cdcapp.trigger;
 
-import edu.jmaycon.cdcapp.model.SnapshotId;
+import edu.jmaycon.cdcapp.model.SnapshotInterval;
 
 public interface SnapshotHandler {
-    void handle(SnapshotId from, SnapshotId to);
+    void handle(SnapshotInterval interval);
 }

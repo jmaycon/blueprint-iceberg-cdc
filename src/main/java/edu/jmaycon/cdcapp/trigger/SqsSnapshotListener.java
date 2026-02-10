@@ -1,5 +1,6 @@
 package edu.jmaycon.cdcapp.trigger;
 
+import edu.jmaycon.cdcapp.model.SnapshotInterval;
 import jakarta.annotation.PostConstruct;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -57,7 +58,7 @@ class SqsSnapshotListener {
         try {
             heartbeat = startHeartbeat(message);
             SnapshotEvent event = messageParser.parse(message.body());
-            snapshotHandler.handle(event.from(), event.to());
+            snapshotHandler.handle(new SnapshotInterval(event.from(), event.to()));
             deleteMessage(message);
         } catch (Exception e) {
             log.error("Failed to process message {}", message.messageId(), e);

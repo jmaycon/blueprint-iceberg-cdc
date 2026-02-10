@@ -1,6 +1,7 @@
 package edu.jmaycon.cdcapp.application;
 
 import edu.jmaycon.cdcapp.model.SnapshotId;
+import edu.jmaycon.cdcapp.model.SnapshotInterval;
 import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
 import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;
 import java.util.concurrent.TimeoutException;
@@ -30,7 +31,9 @@ class StreamingCdcProcessor implements CdcChangeProcessor, AutoCloseable {
     private final AtomicReference<StreamingQuery> streamingQuery = new AtomicReference<>();
 
     @Override
-    public void process(SnapshotId from, SnapshotId to) {
+    public void process(SnapshotInterval interval) {
+        SnapshotId from = interval.from();
+        SnapshotId to = interval.to();
         if (!started.compareAndSet(false, true)) {
             throw new IllegalStateException("Streaming query already started");
         }
