@@ -3,14 +3,14 @@
     "configurations": [
         {
             "type": "java",
-            "name": "DownstreamConsumerApplication",
+            "name": "Consumer",
             "request": "launch",
             "mainClass": "edu.jmaycon.downstreamconsumer.DownstreamConsumerApplication",
             "projectName": "blueprint-iceberg-cdc"
         },
         {
             "type": "java",
-            "name": "Spring Boot-IcebergWriterApplication",
+            "name": "Writer",
             "request": "launch",
             "mainClass": "edu.jmaycon.icerbergwriter.IcebergWriterApplication",
             "projectName": "blueprint-iceberg-cdc",
@@ -19,7 +19,7 @@
         },
         {
             "type": "java",
-            "name": "Spring Boot-CdcApplication",
+            "name": "CDC",
             "request": "launch",
             "mainClass": "edu.jmaycon.cdcapp.CdcApplication",
             "projectName": "blueprint-iceberg-cdc",
