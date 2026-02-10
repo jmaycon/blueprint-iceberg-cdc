@@ -53,7 +53,7 @@ services:
       - ./trino/config.properties:/etc/trino/config.properties
 
   iceberg-rest-catalog:
-    image: apache/iceberg-rest-fixture:1.7.1
+    image: apache/iceberg-rest-fixture:latest
     container_name: iceberg-rest-catalog
     depends_on: [minio-init]
     ports:
