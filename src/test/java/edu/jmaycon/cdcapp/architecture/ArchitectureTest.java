@@ -60,4 +60,13 @@ public class ArchitectureTest {
             .onlyDependOnClassesThat(resideInAPackage("..sink..")
                     .or(resideInAPackage("..model.."))
                     .or(not(resideInAPackage("edu.jmaycon.cdcapp.."))));
+
+    @ArchTest
+    static final ArchRule source_can_only_depend_on_itself_and_model = classes()
+            .that()
+            .resideInAPackage("..source..")
+            .should()
+            .onlyDependOnClassesThat(resideInAPackage("..source..")
+                    .or(resideInAPackage("..model.."))
+                    .or(not(resideInAPackage("edu.jmaycon.cdcapp.."))));
 }
