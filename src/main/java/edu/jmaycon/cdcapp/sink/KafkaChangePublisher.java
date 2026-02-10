@@ -13,7 +13,7 @@ public class KafkaChangePublisher {
 
     public void publish(FlightTicketAvro ticket) {
         String key = ticket.getTicketUuid().toString();
-        var unused = kafkaTemplate.send(topic, key, ticket).whenComplete((result, ex) -> {
+        kafkaTemplate.send(topic, key, ticket).whenComplete((result, ex) -> {
             if (ex == null) {
                 log.info(
                         "Sent record key={} offset={} partition={} type=UPSERT",
@@ -27,7 +27,7 @@ public class KafkaChangePublisher {
     }
 
     public void publishTombstone(String key) {
-        var unused = kafkaTemplate.send(topic, key, null).whenComplete((result, ex) -> {
+        kafkaTemplate.send(topic, key, null).whenComplete((result, ex) -> {
             if (ex == null) {
                 log.info(
                         "Sent record key={} offset={} partition={} type=TOMBSTONE",
