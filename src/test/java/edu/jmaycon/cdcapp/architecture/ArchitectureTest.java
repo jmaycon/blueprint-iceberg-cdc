@@ -37,4 +37,11 @@ public class ArchitectureTest {
                     .or(resideInAPackage("..config.."))
                     .or(resideInAPackage("..model.."))
                     .or(not(resideInAPackage("edu.jmaycon.cdcapp.."))));
+
+    @ArchTest
+    static final ArchRule model_should_only_depend_on_itself = classes()
+            .that()
+            .resideInAPackage("..model..")
+            .should()
+            .onlyDependOnClassesThat(resideInAPackage("..model..").or(not(resideInAPackage("edu.jmaycon.cdcapp.."))));
 }
