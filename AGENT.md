@@ -128,6 +128,8 @@ String message = "Error occurred\nPlease try again\nContact support";
 - All Spring components MUST be assembled via `@Bean` methods in module Config.
 - `@Component` and `@Service` are FORBIDDEN.
 - Bean declarations must be explicit and module-scoped.
+- **Bean Statelessness**: Spring beans MUST be stateless and thread-safe. Mutable state in beans is FORBIDDEN.
+    - If mutable state is strictly required (e.g., for a stateful CDC processor), do NOT use Spring prototype scopes. Instead, implement a custom factory to manage instance creation manually to keep the system simple and predictable.
 - Configuration properties must be validated at startup.
 - Filesystem-backed configuration must be configurable via env or config files using normalized paths.
 
