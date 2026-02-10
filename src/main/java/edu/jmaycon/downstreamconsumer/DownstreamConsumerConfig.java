@@ -30,8 +30,10 @@ public class DownstreamConsumerConfig {
                 ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
                 StringDeserializer.class,
                 ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-                FlightTicketAvroDeserializer.class,
-                "specific.avro.reader",
+                io.confluent.kafka.serializers.KafkaAvroDeserializer.class,
+                io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
+                kafka.schemaRegistryUrl(),
+                io.confluent.kafka.serializers.KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG,
                 kafka.avroSpecificReader());
         return new DefaultKafkaConsumerFactory<>(config);
     }
