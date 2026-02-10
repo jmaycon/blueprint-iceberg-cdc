@@ -25,7 +25,7 @@ services:
       - minio
 
   localstack:
-    image: localstack/localstack:latest
+    image: localstack/localstack:3.8.1
     container_name: localstack
     environment:
       SERVICES: sqs
@@ -38,7 +38,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
   trino:
-    image: trinodb/trino:latest
+    image: trinodb/trino:465
     container_name: trino
     depends_on: [minio-init, localstack]
     ports:
@@ -53,7 +53,7 @@ services:
       - ./trino/config.properties:/etc/trino/config.properties
 
   iceberg-rest-catalog:
-    image: apache/iceberg-rest-fixture:latest
+    image: apache/iceberg-rest-fixture:1.7.1
     container_name: iceberg-rest-catalog
     depends_on: [minio-init]
     ports:
@@ -124,7 +124,7 @@ services:
       KARAPACE_AUTHORIZATION: "false"
 
   kafka-ui:
-    image: provectuslabs/kafka-ui:latest
+    image: provectuslabs/kafka-ui:v0.7.2
     container_name: kafka-ui
     ports:
       - "8084:8080"
@@ -139,7 +139,7 @@ services:
       KAFKA_CLUSTERS_0_SCHEMA_REGISTRY: "http://kafka-schema-registry:8081"
 
   hue:
-    image: gethue/hue:latest
+    image: gethue/hue:4.11.0
     container_name: hue-dev-tool-query-ui
     user: "0:0"
     ports:
@@ -153,3 +153,16 @@ services:
     depends_on:
       trino:
         condition: service_started
+
+  cdcapp:
+    build:
+      context: ..
+      dockerfile: .infra/cdcapp.Dockerfile
+    container_name: cdcapp
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
+      kafka-schema-registry:
+        condition: service_started
+    environment:
+      SPRING_APPLICATION_NAME: blueprint-iceberg-cdc
