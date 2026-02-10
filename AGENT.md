@@ -177,7 +177,7 @@ public class SearchConfig {
 - **Properties**:
     - Use `record` classes for `@ConfigurationProperties`.
     - Do NOT use Lombok (`@Getter`, `@Setter`, etc.) on property records.
-    - Property records should be inner types of the module configuration class.
+    - Property records should be inner types of the module configuration class and `package-private`.
     - Example:
       ```java
       @Configuration
