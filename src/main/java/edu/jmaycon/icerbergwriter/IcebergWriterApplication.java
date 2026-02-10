@@ -93,33 +93,33 @@ public class IcebergWriterApplication implements CommandLineRunner {
 
     private static StructType buildSchema() {
         StructType flightSchema = new StructType(new StructField[] {
-                new StructField("flight_number", DataTypes.StringType, false, Metadata.empty()),
-                new StructField("departure_airport", DataTypes.StringType, false, Metadata.empty()),
-                new StructField("arrival_airport", DataTypes.StringType, false, Metadata.empty()),
-                new StructField("departure_time", DataTypes.TimestampType, false, Metadata.empty()),
-                new StructField("arrival_time", DataTypes.TimestampType, false, Metadata.empty())
+            new StructField("flight_number", DataTypes.StringType, false, Metadata.empty()),
+            new StructField("departure_airport", DataTypes.StringType, false, Metadata.empty()),
+            new StructField("arrival_airport", DataTypes.StringType, false, Metadata.empty()),
+            new StructField("departure_time", DataTypes.TimestampType, false, Metadata.empty()),
+            new StructField("arrival_time", DataTypes.TimestampType, false, Metadata.empty())
         });
 
         StructType passengerSchema = new StructType(new StructField[] {
-                new StructField("first_name", DataTypes.StringType, false, Metadata.empty()),
-                new StructField("last_name", DataTypes.StringType, false, Metadata.empty()),
-                new StructField("date_of_birth", DataTypes.DateType, false, Metadata.empty())
+            new StructField("first_name", DataTypes.StringType, false, Metadata.empty()),
+            new StructField("last_name", DataTypes.StringType, false, Metadata.empty()),
+            new StructField("date_of_birth", DataTypes.DateType, false, Metadata.empty())
         });
 
         StructType baggageSchema = new StructType(new StructField[] {
-                new StructField("weight_kg", DataTypes.createDecimalType(5, 3), false, Metadata.empty()),
-                new StructField("type", DataTypes.StringType, false, Metadata.empty())
+            new StructField("weight_kg", DataTypes.createDecimalType(5, 3), false, Metadata.empty()),
+            new StructField("type", DataTypes.StringType, false, Metadata.empty())
         });
 
         return new StructType(new StructField[] {
-                new StructField("ticket_uuid", DataTypes.StringType, false, Metadata.empty()),
-                new StructField("ticket_id", DataTypes.StringType, false, Metadata.empty()),
-                new StructField("price", DataTypes.createDecimalType(10, 2), false, Metadata.empty()),
-                new StructField("flight", flightSchema, false, Metadata.empty()),
-                new StructField("passenger", passengerSchema, false, Metadata.empty()),
-                new StructField("seat", DataTypes.StringType, false, Metadata.empty()),
-                new StructField("baggage", DataTypes.createArrayType(baggageSchema, false), false, Metadata.empty()),
-                new StructField("meal_preference", DataTypes.StringType, true, Metadata.empty())
+            new StructField("ticket_uuid", DataTypes.StringType, false, Metadata.empty()),
+            new StructField("ticket_id", DataTypes.StringType, false, Metadata.empty()),
+            new StructField("price", DataTypes.createDecimalType(10, 2), false, Metadata.empty()),
+            new StructField("flight", flightSchema, false, Metadata.empty()),
+            new StructField("passenger", passengerSchema, false, Metadata.empty()),
+            new StructField("seat", DataTypes.StringType, false, Metadata.empty()),
+            new StructField("baggage", DataTypes.createArrayType(baggageSchema, false), false, Metadata.empty()),
+            new StructField("meal_preference", DataTypes.StringType, true, Metadata.empty())
         });
     }
 
