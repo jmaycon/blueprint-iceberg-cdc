@@ -1,9 +1,9 @@
 package edu.jmaycon.cdcapp.application;
 
-import edu.jmaycon.cdcapp.config.CdcAppProperties;
 import edu.jmaycon.cdcapp.model.SnapshotId;
 import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
 import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;
+import edu.jmaycon.cdcapp.source.SourceModule;
 import edu.jmaycon.cdcapp.state.CursorStore;
 import edu.playground.avro.FlightTicketAvro;
 import lombok.Builder;
@@ -21,7 +21,7 @@ public class ChangelogCdcProcessor implements CdcChangeProcessor {
     private final FlightTicketRowMapper rowMapper;
     private final KafkaChangePublisher changePublisher;
     private final CursorStore cursorStore;
-    private final CdcAppProperties.Iceberg iceberg;
+    private final SourceModule.Properties source;
 
     @Override
     public void process(SnapshotId snapshotId) {
@@ -52,7 +52,7 @@ public class ChangelogCdcProcessor implements CdcChangeProcessor {
                 .read()
                 .format("iceberg")
                 .option("snapshot-id", Long.toString(snapshotId.value()))
-                .load(iceberg.table());
+                .load(source.table());
         snapshot.collectAsList().forEach(row -> changePublisher.publish(rowMapper.map(row)));
     }
 
@@ -63,12 +63,12 @@ public class ChangelogCdcProcessor implements CdcChangeProcessor {
                   '%s',
                   '%s',
                   map('start-snapshot-id','%d','end-snapshot-id','%d'))
-                """.formatted(iceberg.table(), tempViewName, startSnapshot.value(), endSnapshot.value());
+                """.formatted(source.table(), tempViewName, startSnapshot.value(), endSnapshot.value());
         sparkSession.sql(statement);
     }
 
     private String tempChangelogViewName() {
-        String configured = iceberg.changelogView();
+        String configured = source.changelogView();
         int lastDot = configured.lastIndexOf('.');
         if (lastDot == -1 || lastDot == configured.length() - 1) {
             return configured;

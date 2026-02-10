@@ -1,6 +1,5 @@
 package edu.jmaycon.cdcapp.trigger;
 
-import edu.jmaycon.cdcapp.config.CdcAppProperties;
 import lombok.Builder;
 import org.springframework.scheduling.annotation.Scheduled;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -13,9 +12,9 @@ public class SqsSnapshotListener {
     private final String queueUrl;
     private final SnapshotMessageParser messageParser;
     private final SnapshotHandler orchestrator;
-    private final CdcAppProperties.Sqs properties;
+    private final TriggerModule.Properties.SqsConfig properties;
 
-    @Scheduled(fixedDelayString = "${cdcapp.sqs.poll-delay}")
+    @Scheduled(fixedDelayString = "${cdcapp.trigger.sqs.poll-delay}")
     public void pollOnce() {
         ReceiveMessageRequest request = ReceiveMessageRequest.builder()
                 .queueUrl(queueUrl)

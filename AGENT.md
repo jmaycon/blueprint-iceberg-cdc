@@ -170,5 +170,27 @@ public class SearchConfig {
     - `Config`: For Spring `@Configuration` classes (e.g., `AppConfig`).
     - `Properties`: For `@ConfigurationProperties` classes (e.g., `CdcAppProperties`).
 
+## 12. Module Config Pattern
+- **Configuration Classes**:
+    - Each module should have its own `@Configuration` class (e.g., `SourceModule`).
+    - Prefer `package-private` visibility for the configuration class and its `@Bean` methods, unless public access is required by other modules.
+- **Properties**:
+    - Use `record` classes for `@ConfigurationProperties`.
+    - Do NOT use Lombok (`@Getter`, `@Setter`, etc.) on property records.
+    - Property records should be inner types of the module configuration class.
+    - Example:
+      ```java
+      @Configuration
+      @EnableConfigurationProperties(MyModule.Properties.class)
+      class MyModule {
+          @ConfigurationProperties(prefix = "app.my-module")
+          record Properties(String host, int port) {}
+      }
+      ```
+- **Rationale**:
+    - **Isolation**: Allows each module to be tested in isolation without loading the entire application context.
+    - **Reduced Coupling**: Decouples packages by preventing cross-module bean leaking.
+    - **Encapsulation**: Enforces package-level visibility (package-private) to ensure internal components remain internal.
+
 ---
-**Version**: 1.12.0 | **Ratified**: 2025-10-25 | **Last Amended**: 2026-02-10
+**Version**: 1.13.1 | **Ratified**: 2025-10-25 | **Last Amended**: 2026-02-10

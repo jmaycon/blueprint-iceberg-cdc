@@ -1,9 +1,9 @@
 package edu.jmaycon.cdcapp.application;
 
-import edu.jmaycon.cdcapp.config.CdcAppProperties;
 import edu.jmaycon.cdcapp.model.SnapshotId;
 import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
 import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;
+import edu.jmaycon.cdcapp.source.SourceModule;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -20,7 +20,7 @@ public class StreamingCdcProcessor implements CdcChangeProcessor, AutoCloseable 
     private final SparkSession sparkSession;
     private final FlightTicketRowMapper rowMapper;
     private final KafkaChangePublisher changePublisher;
-    private final CdcAppProperties.Iceberg iceberg;
+    private final SourceModule.Properties source;
 
     @Builder.Default
     private final AtomicBoolean started = new AtomicBoolean(false);
@@ -35,7 +35,7 @@ public class StreamingCdcProcessor implements CdcChangeProcessor, AutoCloseable 
         }
         log.info("Starting streaming CDC processor for snapshot trigger: {}", snapshotId);
 
-        Dataset<Row> stream = sparkSession.readStream().format("iceberg").load(iceberg.table());
+        Dataset<Row> stream = sparkSession.readStream().format("iceberg").load(source.table());
 
         try {
             streamingQuery.set(stream.writeStream()
