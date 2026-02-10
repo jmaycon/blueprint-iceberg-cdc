@@ -16,7 +16,7 @@ import org.apache.spark.sql.SparkSession;
 @Slf4j
 @Builder
 @RequiredArgsConstructor
-class ChangelogCdcProcessor implements CdcChangeProcessor {
+class ChangelogCdcProcessor {
     private final SparkSession sparkSession;
     private final FlightTicketRowMapper rowMapper;
     private final KafkaChangePublisher changePublisher;
@@ -24,24 +24,25 @@ class ChangelogCdcProcessor implements CdcChangeProcessor {
     private final String table;
     private final String changelogView;
 
-    @Override
     public void process(SnapshotInterval interval) {
-        SnapshotId from = interval.from();
         SnapshotId to = interval.to();
-        if (from != null) {
-            try {
-                processIncrementalChanges(from, to);
-                cursorStore.save(to);
-            } catch (IllegalArgumentException ex) {
-                log.warn(
-                        "Stored snapshot cursor {} is not an ancestor of current snapshot {}. Falling back to full snapshot.",
-                        from,
-                        to,
-                        ex);
-                processFullSnapshot(to);
-                cursorStore.save(to);
-            }
-        } else {
+        SnapshotId from = interval.from();
+
+        if (from == null) {
+            processFullSnapshot(to);
+            cursorStore.save(to);
+            return;
+        }
+
+        try {
+            processIncrementalChanges(from, to);
+            cursorStore.save(to);
+        } catch (IllegalArgumentException ex) {
+            log.warn(
+                    "Stored snapshot cursor {} is not an ancestor of current snapshot {}. Falling back to full snapshot.",
+                    from,
+                    to,
+                    ex);
             processFullSnapshot(to);
             cursorStore.save(to);
         }

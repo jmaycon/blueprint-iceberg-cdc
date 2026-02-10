@@ -4,6 +4,21 @@ spring:
   profiles:
     default: changelog
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
 cdcapp:
   source:
     catalog-uri: http://localhost:8181

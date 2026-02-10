@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 class CdcOrchestrator implements SnapshotHandler {
-    private final CdcChangeProcessor changeProcessor;
+    private final ChangelogCdcProcessor changeProcessor;
 
     @Override
     public void handle(SnapshotInterval interval) {
