@@ -28,7 +28,7 @@ class SqsSnapshotListener {
 
     @PostConstruct
     void start() {
-        Executors.newSingleThreadExecutor().submit(this::listen);
+        Executors.newSingleThreadExecutor().execute(this::listen);
     }
 
     private void listen() {
