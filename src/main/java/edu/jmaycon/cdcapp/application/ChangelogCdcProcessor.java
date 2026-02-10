@@ -83,18 +83,18 @@ class ChangelogCdcProcessor implements CdcChangeProcessor {
     }
 
     private void forwardChange(Row row) {
+        // Ignore UPDATE_BEFORE events as they are immediately followed by an
+        // UPDATE_AFTER.
+        // Skipping them avoids redundant tombstone-upsert pairs in the downstream sink.
+        if ("UPDATE_BEFORE".equals(row.getString(row.fieldIndex("_change_type")))) {
+            return;
+        }
+
         String changeType = row.getString(row.fieldIndex("_change_type"));
         String ticketId = row.getString(row.fieldIndex("ticket_uuid"));
 
         if ("DELETE".equals(changeType)) {
             changePublisher.publishTombstone(ticketId);
-            return;
-        }
-
-        // Ignore UPDATE_BEFORE events as they are immediately followed by an
-        // UPDATE_AFTER.
-        // Skipping them avoids redundant tombstone-upsert pairs in the downstream sink.
-        if ("UPDATE_BEFORE".equals(changeType)) {
             return;
         }
 

@@ -26,6 +26,16 @@
 - Clear separation of concerns.
 - One business concept per class.
 - Fail-fast validation.
+- **Short-Circuiting (Guard Clauses)**: Prefer early exits/guard clauses at the beginning of methods to reduce nesting and improve readability.
+    - Example:
+      ```java
+      public void process(Data data) {
+          if (data == null || data.isInvalid()) {
+              return;
+          }
+          // main logic follows
+      }
+      ```
 - **CDC State Synchronization**: When processing changelogs for key-value (Upsert) sinks:
     - `DELETE` events must trigger a tombstone to clear the state.
     - `UPDATE_BEFORE` events should be **ignored** to avoid redundant tombstone-upsert pairs, as the subsequent `UPDATE_AFTER` handles the update.
