@@ -1,5 +1,6 @@
 package edu.jmaycon.cdcapp.trigger;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -39,8 +40,8 @@ class TriggerModule {
     }
 
     @Bean
-    SnapshotMessageParser snapshotMessageParser() {
-        return new SnapshotMessageParser();
+    SnapshotMessageParser snapshotMessageParser(ObjectMapper objectMapper) {
+        return new SnapshotMessageParser(objectMapper);
     }
 
     @Bean

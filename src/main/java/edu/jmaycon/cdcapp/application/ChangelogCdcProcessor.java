@@ -24,26 +24,25 @@ class ChangelogCdcProcessor implements CdcChangeProcessor {
     private final String changelogView;
 
     @Override
-    public void process(SnapshotId snapshotId) {
-        SnapshotId startSnapshot = cursorStore.load().orElse(null);
-        if (startSnapshot != null) {
+    public void process(SnapshotId from, SnapshotId to) {
+        if (from != null) {
             try {
-                createChangelogView(startSnapshot, snapshotId);
+                createChangelogView(from, to);
                 Dataset<Row> changes = sparkSession.table(tempChangelogViewName());
                 changes.collectAsList().forEach(this::publishChange);
-                cursorStore.save(snapshotId);
+                cursorStore.save(to);
             } catch (IllegalArgumentException ex) {
                 log.warn(
                         "Stored snapshot cursor {} is not an ancestor of current snapshot {}. Falling back to full snapshot.",
-                        startSnapshot,
-                        snapshotId,
+                        from,
+                        to,
                         ex);
-                publishFullSnapshot(snapshotId);
-                cursorStore.save(snapshotId);
+                publishFullSnapshot(to);
+                cursorStore.save(to);
             }
         } else {
-            publishFullSnapshot(snapshotId);
-            cursorStore.save(snapshotId);
+            publishFullSnapshot(to);
+            cursorStore.save(to);
         }
     }
 

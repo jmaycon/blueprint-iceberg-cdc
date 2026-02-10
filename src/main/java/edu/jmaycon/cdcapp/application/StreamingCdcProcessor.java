@@ -30,11 +30,11 @@ class StreamingCdcProcessor implements CdcChangeProcessor, AutoCloseable {
     private final AtomicReference<StreamingQuery> streamingQuery = new AtomicReference<>();
 
     @Override
-    public void process(SnapshotId snapshotId) {
+    public void process(SnapshotId from, SnapshotId to) {
         if (!started.compareAndSet(false, true)) {
             throw new IllegalStateException("Streaming query already started");
         }
-        log.info("Starting streaming CDC processor for snapshot trigger: {}", snapshotId);
+        log.info("Starting streaming CDC processor for snapshot trigger: from={} to={}", from, to);
 
         Dataset<Row> stream = sparkSession.readStream().format("iceberg").load(table);
 

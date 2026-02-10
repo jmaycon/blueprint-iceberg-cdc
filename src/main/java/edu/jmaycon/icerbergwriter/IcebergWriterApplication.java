@@ -85,8 +85,12 @@ public class IcebergWriterApplication implements CommandLineRunner {
                 WHEN NOT MATCHED THEN INSERT *
                 """.formatted(tempView));
 
-        long snapshotId = latestSnapshotId(spark);
-        cdcSnapshotPublisher.publishSnapshot(snapshotId);
+        List<Long> snapshots = getLatestSnapshots(spark);
+        if (!snapshots.isEmpty()) {
+            long toSnapshotId = snapshots.get(0);
+            Long fromSnapshotId = snapshots.size() > 1 ? snapshots.get(1) : null;
+            cdcSnapshotPublisher.publishSnapshot(fromSnapshotId, toSnapshotId);
+        }
 
         spark.stop();
     }
@@ -161,14 +165,13 @@ public class IcebergWriterApplication implements CommandLineRunner {
         return Timestamp.from(instant);
     }
 
-    private static long latestSnapshotId(SparkSession spark) {
+    private static List<Long> getLatestSnapshots(SparkSession spark) {
         Dataset<Row> snapshotIds = spark.sql("""
                 SELECT snapshot_id
                 FROM rest.default.flight_tickets.snapshots
                 ORDER BY committed_at DESC
-                LIMIT 1
+                LIMIT 2
                 """);
-        Row row = snapshotIds.collectAsList().get(0);
-        return row.getLong(0);
+        return snapshotIds.collectAsList().stream().map(row -> row.getLong(0)).toList();
     }
 }

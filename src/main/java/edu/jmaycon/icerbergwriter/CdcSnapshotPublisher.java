@@ -9,11 +9,13 @@ final class CdcSnapshotPublisher {
     private final SqsClient sqsClient;
     private final String queueUrl;
 
-    public void publishSnapshot(long snapshotId) {
+    public void publishSnapshot(Long fromSnapshotId, long toSnapshotId) {
+        String from = fromSnapshotId == null ? "null" : Long.toString(fromSnapshotId);
+        String body = String.format("{\"from\": %s, \"to\": %d}", from, toSnapshotId);
         SendMessageRequest request = SendMessageRequest.builder()
                 .queueUrl(queueUrl)
                 .messageGroupId("cdc-snapshots")
-                .messageBody(Long.toString(snapshotId))
+                .messageBody(body)
                 .build();
         sqsClient.sendMessage(request);
     }

@@ -9,7 +9,7 @@ class CdcOrchestrator implements SnapshotHandler {
     private final CdcChangeProcessor changeProcessor;
 
     @Override
-    public void handle(SnapshotId snapshotId) {
-        changeProcessor.process(snapshotId);
+    public void handle(SnapshotId from, SnapshotId to) {
+        changeProcessor.process(from, to);
     }
 }
