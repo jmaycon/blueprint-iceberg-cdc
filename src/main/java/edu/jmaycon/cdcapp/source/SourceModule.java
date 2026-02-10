@@ -43,11 +43,6 @@ public class SourceModule {
     }
 
     @Bean
-    SnapshotPlanner snapshotPlanner() {
-        return new SnapshotPlanner();
-    }
-
-    @Bean
     FlightTicketRowMapper flightTicketRowMapper() {
         return new FlightTicketRowMapper();
     }
@@ -63,9 +58,8 @@ public class SourceModule {
     }
 
     @Bean
-    IcebergSnapshotReader icebergSnapshotReader(
-            SnapshotPlanner snapshotPlanner, IcebergChangelogReader icebergChangelogReader) {
-        return new IcebergSnapshotReader(snapshotPlanner, icebergChangelogReader);
+    IcebergSnapshotReader icebergSnapshotReader(IcebergChangelogReader icebergChangelogReader) {
+        return new IcebergSnapshotReader(icebergChangelogReader);
     }
 
     @ConfigurationProperties(prefix = "cdcapp.source")
