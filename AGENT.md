@@ -74,6 +74,11 @@ String message = "Error occurred\nPlease try again\nContact support";
     - Exceptions should be expressive and specific to the failure mode.
     - All exceptions must be handled: either thrown to the caller or logged with a proper level (e.g., SLF4J log.error). Silently ignoring exceptions is strictly FORBIDDEN.
 
+- **Variable Names**:
+    - Must be descriptive and use `camelCase`.
+    - Single-letter variable names are acceptable ONLY in lambda expressions or loop counters (e.g., `i`).
+    - **Type Alignment**: Variable names must align with their type. Do not use alias names that differ significantly from the type (e.g., do NOT name a parameter of type `SnapshotHandler` as `orchestrator`; instead use `snapshotHandler` or `handler`).
+
 ## 5. Testing Standards
 - Unit tests for all business logic.
 - Integration tests for module boundaries.

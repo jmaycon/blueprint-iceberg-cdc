@@ -48,12 +48,12 @@ class TriggerModule {
             SqsClient sqsClient,
             String sqsQueueUrl,
             SnapshotMessageParser snapshotMessageParser,
-            SnapshotHandler orchestrator) {
+            SnapshotHandler snapshotHandler) {
         return SqsSnapshotListener.builder()
                 .sqsClient(sqsClient)
                 .queueUrl(sqsQueueUrl)
                 .messageParser(snapshotMessageParser)
-                .orchestrator(orchestrator)
+                .snapshotHandler(snapshotHandler)
                 .properties(properties.sqs())
                 .build();
     }
@@ -63,6 +63,12 @@ class TriggerModule {
 
         record AwsConfig(String endpoint, String region, String accessKeyId, String secretAccessKey) {}
 
-        record SqsConfig(String queueName, long pollDelay, int maxMessages, int waitTimeSeconds) {}
+        record SqsConfig(
+                String queueName,
+                long pollDelay,
+                int maxMessages,
+                int waitTimeSeconds,
+                int heartbeatIntervalSeconds,
+                int visibilityExtensionSeconds) {}
     }
 }

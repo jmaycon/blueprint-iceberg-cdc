@@ -32,4 +32,6 @@ cdcapp:
       poll-delay: 2000
       max-messages: 10
       wait-time-seconds: 10
+      heartbeat-interval-seconds: 10
+      visibility-extension-seconds: 30
 
