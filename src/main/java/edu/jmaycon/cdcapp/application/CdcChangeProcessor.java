@@ -1,4 +1,4 @@
-package edu.jmaycon.cdcapp.runtime;
+package edu.jmaycon.cdcapp.application;
 
 import edu.jmaycon.cdcapp.model.SnapshotId;
 

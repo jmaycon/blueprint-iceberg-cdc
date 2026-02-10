@@ -1,0 +1,7 @@
+downstreamconsumer:
+  kafka:
+    bootstrap-servers: localhost:9094
+    topic: flight_tickets
+    group-id: downstream-consumer
+    avro-specific-reader: true
+    schema-registry-url: http://localhost:8081

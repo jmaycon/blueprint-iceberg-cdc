@@ -8,7 +8,7 @@
 - Single responsibility: one reason to change for each class/module/method.
 - Platform independence: all filesystem paths must be OS-agnostic and configurable.
 - Dependency stability: only stable releases; verify coordinates in the primary registry.
-- Avoid try/catch that does nothing or only logs unless explicitly justified and confirmed.
+- Avoid try/catch blocks that suppress exceptions. Every exception MUST be either rethrown (potentially wrapped) or logged with the appropriate level (ERROR/WARN) depending on the context. Exceptions must NEVER be silently omitted.
 
 ## 2. Architecture Rules
 **Module Boundary Rules:**
@@ -27,6 +27,11 @@
 - One business concept per class.
 - Fail-fast validation.
 
+**Import Rules:**
+- Use explicit/qualified imports (e.g., `import java.util.List;`) whenever possible.
+- Avoid wildcard imports (`import java.util.*;`).
+- Avoid fully qualified names in code unless necessary for disambiguation.
+
 ## 3. Java-Specific Rules
 **Optional Usage (MANDATORY):**
 - Optional types are ONLY permitted as method return types.
@@ -36,6 +41,13 @@
 **Text Blocks for Multi-line Strings (MANDATORY):**
 - Use text blocks for any multi-line string literal.
 - Traditional `\n` concatenation or `StringBuilder` for static multi-line strings is FORBIDDEN.
+
+**Visibility Modifiers:**
+- Preferred visibility order: `private` > `package-private` (default) > `protected` > `public`.
+- Only use `public` if absolutely necessary (e.g., interface methods, API entry points).
+
+**Lambda Usage (MANDATORY):**
+- Avoid calling methods that take two or more lambda arguments in a row (e.g., `Optional.ifPresentOrElse(..)`). Use traditional `isPresent()` / `if` or other constructs to maintain high readability.
 
 **Required Pattern:**
 ```java
@@ -51,8 +63,15 @@ String message = "Error occurred\nPlease try again\nContact support";
 ```
 
 ## 4. Object Construction
-- Classes or records with more than 3 attributes MUST use Lombok `@Builder`.
+- Use Lombok `@RequiredArgsConstructor` for constructor generation.
+- Classes or records with 4 or more attributes MUST also use Lombok `@Builder`.
+    - When using `@Builder` on a class, `@RequiredArgsConstructor` is still needed for dependency injection or if the class is instantiated via constructor elsewhere.
+    - If `@Builder` covers all construction needs, `@RequiredArgsConstructor` *may* be omitted, but `@AllArgsConstructor` (package-private) is typically required by `@Builder`.
 - Prevent telescoping constructors while maintaining immutability.
+- **Custom Exceptions:**
+    - Use static inner classes for custom exceptions to keep them close to their usage context.
+    - Exceptions should be expressive and specific to the failure mode.
+    - All exceptions must be handled: either thrown to the caller or logged with a proper level (e.g., SLF4J log.error). Silently ignoring exceptions is strictly FORBIDDEN.
 
 ## 5. Testing Standards
 - Unit tests for all business logic.
@@ -136,5 +155,19 @@ public class SearchConfig {
 - `refactor: simplify request pipeline`
 - `build: update dependencies`
 
+## 10. Code Organization
+- **Member Ordering**:
+    - Within a class or record, order methods with the same access modifier by relevance and meaning (most significant business logic first).
+    - All static members (static fields, static methods, static initialization blocks) and static inner classes MUST be placed at the bottom of the file.
+
+## 11. Naming Conventions
+- **Class Suffixes**: Use descriptive suffixes to indicate the role of a class or interface:
+    - `Handler`: For interfaces or classes that handle events or specific actions (e.g., `SnapshotHandler`).
+    - `Listener`: For components that react to external triggers or messages (e.g., `SqsSnapshotListener`).
+    - `Mapper`: For components that transform data between different representations (e.g., `FlightTicketRowMapper`).
+    - `Reader`: For components that fetch data from external sources (e.g., `IcebergSnapshotReader`).
+    - `Config`: For Spring `@Configuration` classes (e.g., `AppConfig`).
+    - `Properties`: For `@ConfigurationProperties` classes (e.g., `CdcAppProperties`).
+
 ---
-**Version**: 1.11.0 | **Ratified**: 2025-10-25 | **Last Amended**: 2025-10-25
+**Version**: 1.12.0 | **Ratified**: 2025-10-25 | **Last Amended**: 2026-02-10

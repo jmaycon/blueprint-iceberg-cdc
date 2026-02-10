@@ -5,13 +5,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class CursorStore {
     private final Path cursorPath;
-
-    public CursorStore(Path cursorPath) {
-        this.cursorPath = cursorPath;
-    }
 
     public Optional<SnapshotId> load() {
         if (!Files.exists(cursorPath)) {
@@ -24,7 +22,7 @@ public class CursorStore {
             }
             return Optional.of(new SnapshotId(Long.parseLong(raw)));
         } catch (IOException ex) {
-            throw new IllegalStateException("Failed to read snapshot cursor", ex);
+            throw new CursorReadException("Failed to read snapshot cursor from path: " + cursorPath, ex);
         }
     }
 
@@ -33,7 +31,19 @@ public class CursorStore {
             Files.createDirectories(cursorPath.getParent());
             Files.writeString(cursorPath, Long.toString(snapshotId.value()));
         } catch (IOException ex) {
-            throw new IllegalStateException("Failed to persist snapshot cursor", ex);
+            throw new CursorPersistException("Failed to persist snapshot cursor to path: " + cursorPath, ex);
+        }
+    }
+
+    public static class CursorReadException extends RuntimeException {
+        public CursorReadException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+
+    public static class CursorPersistException extends RuntimeException {
+        public CursorPersistException(String message, Throwable cause) {
+            super(message, cause);
         }
     }
 }

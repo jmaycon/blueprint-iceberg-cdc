@@ -1,6 +1,10 @@
 package edu.jmaycon.cdcapp.runtime;
 
-import edu.jmaycon.cdcapp.sink.FlightTicketAvroSerializer;
+import edu.jmaycon.cdcapp.application.CdcChangeProcessor;
+import edu.jmaycon.cdcapp.application.CdcOrchestrator;
+import edu.jmaycon.cdcapp.application.ChangelogCdcProcessor;
+import edu.jmaycon.cdcapp.application.StreamingCdcProcessor;
+import edu.jmaycon.cdcapp.config.CdcAppProperties;
 import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
 import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;
 import edu.jmaycon.cdcapp.source.IcebergChangelogReader;
@@ -8,9 +12,12 @@ import edu.jmaycon.cdcapp.source.IcebergSnapshotReader;
 import edu.jmaycon.cdcapp.source.IcebergTableClient;
 import edu.jmaycon.cdcapp.source.SnapshotPlanner;
 import edu.jmaycon.cdcapp.state.CursorStore;
+import edu.jmaycon.cdcapp.trigger.SnapshotHandler;
 import edu.jmaycon.cdcapp.trigger.SnapshotMessageParser;
 import edu.jmaycon.cdcapp.trigger.SqsSnapshotListener;
 import edu.playground.avro.FlightTicketAvro;
+import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Map;
@@ -35,12 +42,6 @@ import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 @EnableScheduling
 @EnableConfigurationProperties(CdcAppProperties.class)
 public class AppConfig {
-
-    static {
-        System.setProperty("aws.region", "eu-central-1");
-        System.setProperty("aws.accessKeyId", "admin");
-        System.setProperty("aws.secretAccessKey", "admin123");
-    }
 
     @Bean
     public SparkSession sparkSession(CdcAppProperties properties) {
@@ -130,7 +131,9 @@ public class AppConfig {
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
                 StringSerializer.class,
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                FlightTicketAvroSerializer.class);
+                KafkaAvroSerializer.class,
+                AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
+                properties.kafka().schemaRegistryUrl());
         return new DefaultKafkaProducerFactory<>(config);
     }
 
@@ -159,8 +162,13 @@ public class AppConfig {
             KafkaChangePublisher kafkaChangePublisher,
             CursorStore cursorStore,
             CdcAppProperties properties) {
-        return new ChangelogCdcProcessor(
-                sparkSession, rowMapper, kafkaChangePublisher, cursorStore, properties.iceberg());
+        return ChangelogCdcProcessor.builder()
+                .sparkSession(sparkSession)
+                .rowMapper(rowMapper)
+                .changePublisher(kafkaChangePublisher)
+                .cursorStore(cursorStore)
+                .iceberg(properties.iceberg())
+                .build();
     }
 
     @Bean
@@ -170,7 +178,12 @@ public class AppConfig {
             FlightTicketRowMapper rowMapper,
             KafkaChangePublisher kafkaChangePublisher,
             CdcAppProperties properties) {
-        return new StreamingCdcProcessor(sparkSession, rowMapper, kafkaChangePublisher, properties.iceberg());
+        return StreamingCdcProcessor.builder()
+                .sparkSession(sparkSession)
+                .rowMapper(rowMapper)
+                .changePublisher(kafkaChangePublisher)
+                .iceberg(properties.iceberg())
+                .build();
     }
 
     @Bean
@@ -183,8 +196,20 @@ public class AppConfig {
             SqsClient sqsClient,
             String sqsQueueUrl,
             SnapshotMessageParser snapshotMessageParser,
-            CdcOrchestrator orchestrator,
+            SnapshotHandler orchestrator,
             CdcAppProperties properties) {
-        return new SqsSnapshotListener(sqsClient, sqsQueueUrl, snapshotMessageParser, orchestrator, properties.sqs());
+        return SqsSnapshotListener.builder()
+                .sqsClient(sqsClient)
+                .queueUrl(sqsQueueUrl)
+                .messageParser(snapshotMessageParser)
+                .orchestrator(orchestrator)
+                .properties(properties.sqs())
+                .build();
+    }
+
+    static {
+        System.setProperty("aws.region", "eu-central-1");
+        System.setProperty("aws.accessKeyId", "admin");
+        System.setProperty("aws.secretAccessKey", "admin123");
     }
 }

@@ -18,6 +18,7 @@ cdcapp:
   kafka:
     bootstrap-servers: localhost:9094
     topic: flight_tickets
+    schema-registry-url: http://localhost:8081
   iceberg:
     catalog-uri: http://localhost:8181
     warehouse: s3://analytics-warehouse
@@ -30,9 +31,3 @@ cdcapp:
   state:
     cursor-file: /tmp/cdcapp.snapshot.cursor
 
-downstreamconsumer:
-  kafka:
-    bootstrap-servers: localhost:9094
-    topic: flight_tickets
-    group-id: downstream-consumer
-    avro-specific-reader: false

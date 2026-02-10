@@ -1,0 +1,8 @@
+icebergwriter:
+  aws:
+    endpoint: http://localhost:4566
+    region: eu-central-1
+    access-key-id: admin
+    secret-access-key: admin123
+  sqs:
+    queue-name: flight_tickets.fifo

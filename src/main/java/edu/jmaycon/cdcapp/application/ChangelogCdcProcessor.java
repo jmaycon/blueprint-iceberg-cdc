@@ -1,15 +1,21 @@
-package edu.jmaycon.cdcapp.runtime;
+package edu.jmaycon.cdcapp.application;
 
+import edu.jmaycon.cdcapp.config.CdcAppProperties;
 import edu.jmaycon.cdcapp.model.SnapshotId;
 import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
 import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;
 import edu.jmaycon.cdcapp.state.CursorStore;
 import edu.playground.avro.FlightTicketAvro;
-import java.util.Optional;
+import lombok.Builder;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
+@Slf4j
+@Builder
+@RequiredArgsConstructor
 public class ChangelogCdcProcessor implements CdcChangeProcessor {
     private final SparkSession sparkSession;
     private final FlightTicketRowMapper rowMapper;
@@ -17,42 +23,31 @@ public class ChangelogCdcProcessor implements CdcChangeProcessor {
     private final CursorStore cursorStore;
     private final CdcAppProperties.Iceberg iceberg;
 
-    public ChangelogCdcProcessor(
-            SparkSession sparkSession,
-            FlightTicketRowMapper rowMapper,
-            KafkaChangePublisher changePublisher,
-            CursorStore cursorStore,
-            CdcAppProperties.Iceberg iceberg) {
-        this.sparkSession = sparkSession;
-        this.rowMapper = rowMapper;
-        this.changePublisher = changePublisher;
-        this.cursorStore = cursorStore;
-        this.iceberg = iceberg;
-    }
-
     @Override
     public void process(SnapshotId snapshotId) {
-        Optional<SnapshotId> previousSnapshot = cursorStore.load();
-        if (previousSnapshot.isEmpty()) {
-            publishSnapshotSnapshot(snapshotId);
-            cursorStore.save(snapshotId);
-            return;
-        }
-
-        SnapshotId startSnapshot = previousSnapshot.get();
-        try {
-            createChangelogView(startSnapshot, snapshotId);
-            Dataset<Row> changes = sparkSession.table(tempChangelogViewName());
-            changes.collectAsList().forEach(this::publishChange);
-            cursorStore.save(snapshotId);
-        } catch (IllegalArgumentException ex) {
-            // Fallback to a full snapshot when the stored cursor isn't an ancestor.
-            publishSnapshotSnapshot(snapshotId);
+        SnapshotId startSnapshot = cursorStore.load().orElse(null);
+        if (startSnapshot != null) {
+            try {
+                createChangelogView(startSnapshot, snapshotId);
+                Dataset<Row> changes = sparkSession.table(tempChangelogViewName());
+                changes.collectAsList().forEach(this::publishChange);
+                cursorStore.save(snapshotId);
+            } catch (IllegalArgumentException ex) {
+                log.warn(
+                        "Stored snapshot cursor {} is not an ancestor of current snapshot {}. Falling back to full snapshot.",
+                        startSnapshot,
+                        snapshotId,
+                        ex);
+                publishFullSnapshot(snapshotId);
+                cursorStore.save(snapshotId);
+            }
+        } else {
+            publishFullSnapshot(snapshotId);
             cursorStore.save(snapshotId);
         }
     }
 
-    private void publishSnapshotSnapshot(SnapshotId snapshotId) {
+    private void publishFullSnapshot(SnapshotId snapshotId) {
         Dataset<Row> snapshot = sparkSession
                 .read()
                 .format("iceberg")
@@ -63,14 +58,12 @@ public class ChangelogCdcProcessor implements CdcChangeProcessor {
 
     private void createChangelogView(SnapshotId startSnapshot, SnapshotId endSnapshot) {
         String tempViewName = tempChangelogViewName();
-        String statement =
-                """
+        String statement = """
                 CALL rest.system.create_changelog_view(
                   '%s',
                   '%s',
                   map('start-snapshot-id','%d','end-snapshot-id','%d'))
-                """
-                        .formatted(iceberg.table(), tempViewName, startSnapshot.value(), endSnapshot.value());
+                """.formatted(iceberg.table(), tempViewName, startSnapshot.value(), endSnapshot.value());
         sparkSession.sql(statement);
     }
 
