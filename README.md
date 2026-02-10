@@ -33,6 +33,7 @@ This project follows feature/vertical-slice packaging for a CDC component (organ
 - `edu.jmaycon.cdcapp.sink`: Kafka publishing and serialization wiring.
 - `edu.jmaycon.cdcapp.state`: cursor persistence (filesystem).
 - `edu.jmaycon.cdcapp.application`: orchestration, CDC processors and app logic.
+- `edu.jmaycon.cdcapp.config`: configuration properties.
 - `edu.jmaycon.cdcapp.runtime`: application configuration and infrastructure wiring.
 
 **Prerequisites**
