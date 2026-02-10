@@ -99,11 +99,16 @@ String message = "Error occurred\nPlease try again\nContact support";
 - Javadoc is prohibited; names must express intent.
 
 ## 7. Nullability and Validation
-- JSpecify annotations required for nullability declarations.
-- All properties are non-null by default.
-- `@Nullable` only for exceptional cases.
-- Lombok `@RequiredArgsConstructor` for dependency injection.
-- Records for immutable data structures.
+- **Null Safety Enforcement**: NullAway (via Error Prone) is used to enforce null safety at compile time.
+- **Non-Null by Default**: All classes within the `edu.jmaycon` package tree are **non-null by default**.
+- **JSpecify Annotations**:
+    - Use `org.jspecify.annotations.Nullable` to explicitly mark any field, parameter, or return type that can be null.
+    - Do NOT use `@NonNull` or equivalent annotations; non-null is the implicit and enforced default.
+- **Validation**:
+    - Any attempt to pass a potentially null value where non-null is expected will trigger a compilation error.
+    - Dereferencing a `@Nullable` variable without a prior null check will trigger a compilation error.
+- **Lombok Alignment**: Lombok `@RequiredArgsConstructor` correctly handles dependency injection for non-null fields.
+- **Records**: Use records for immutable data structures, applying `@Nullable` to components only when necessary.
 
 ## 8. Configuration Management
 - Each module must have its own Config class (e.g., `SearchConfig`).
@@ -199,4 +204,4 @@ public class SearchConfig {
     - **Encapsulation**: Enforces package-level visibility (package-private) to ensure internal components remain internal.
 
 ---
-**Version**: 1.14.0 | **Ratified**: 2025-10-25 | **Last Amended**: 2026-02-10
+**Version**: 1.15.0 | **Ratified**: 2025-10-25 | **Last Amended**: 2026-02-10
