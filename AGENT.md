@@ -167,8 +167,8 @@ public class SearchConfig {
     - `Listener`: For components that react to external triggers or messages (e.g., `SqsSnapshotListener`).
     - `Mapper`: For components that transform data between different representations (e.g., `FlightTicketRowMapper`).
     - `Reader`: For components that fetch data from external sources (e.g., `IcebergSnapshotReader`).
-    - `Config`: For Spring `@Configuration` classes (e.g., `AppConfig`).
-    - `Properties`: For `@ConfigurationProperties` classes (e.g., `CdcAppProperties`).
+    - `Module`: For Spring `@Configuration` classes representing a module (e.g., `SourceModule`).
+    - `Properties`: For `@ConfigurationProperties` classes (e.g., `SourceModule.Properties`).
 
 ## 12. Module Config Pattern
 - **Configuration Classes**:
@@ -193,4 +193,4 @@ public class SearchConfig {
     - **Encapsulation**: Enforces package-level visibility (package-private) to ensure internal components remain internal.
 
 ---
-**Version**: 1.13.1 | **Ratified**: 2025-10-25 | **Last Amended**: 2026-02-10
+**Version**: 1.14.0 | **Ratified**: 2025-10-25 | **Last Amended**: 2026-02-10
