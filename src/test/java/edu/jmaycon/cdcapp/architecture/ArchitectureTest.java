@@ -51,4 +51,13 @@ public class ArchitectureTest {
             .resideInAPackage("..model..")
             .should()
             .onlyDependOnClassesThat(resideInAPackage("..model..").or(not(resideInAPackage("edu.jmaycon.cdcapp.."))));
+
+    @ArchTest
+    static final ArchRule sink_can_only_depend_on_itself_and_model = classes()
+            .that()
+            .resideInAPackage("..sink..")
+            .should()
+            .onlyDependOnClassesThat(resideInAPackage("..sink..")
+                    .or(resideInAPackage("..model.."))
+                    .or(not(resideInAPackage("edu.jmaycon.cdcapp.."))));
 }
