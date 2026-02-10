@@ -85,10 +85,16 @@ class ChangelogCdcProcessor implements CdcChangeProcessor {
     private void forwardChange(Row row) {
         String changeType = row.getString(row.fieldIndex("_change_type"));
         String ticketId = row.getString(row.fieldIndex("ticket_uuid"));
-        if ("DELETE".equals(changeType) || "UPDATE_BEFORE".equals(changeType)) {
+
+        if ("DELETE".equals(changeType)) {
             changePublisher.publishTombstone(ticketId);
             return;
         }
+
+        if ("UPDATE_BEFORE".equals(changeType)) {
+            return;
+        }
+
         FlightTicketAvro ticket = rowMapper.map(row);
         changePublisher.publish(ticket);
     }

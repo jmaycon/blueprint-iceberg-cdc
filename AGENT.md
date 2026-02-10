@@ -26,6 +26,9 @@
 - Clear separation of concerns.
 - One business concept per class.
 - Fail-fast validation.
+- **CDC State Synchronization**: When processing changelogs for key-value (Upsert) sinks:
+    - `DELETE` events must trigger a tombstone to clear the state.
+    - `UPDATE_BEFORE` events should be **ignored** to avoid redundant tombstone-upsert pairs, as the subsequent `UPDATE_AFTER` handles the update.
 
 **Import Rules:**
 - Use explicit/qualified imports (e.g., `import java.util.List;`) whenever possible.

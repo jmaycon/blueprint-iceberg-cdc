@@ -70,10 +70,16 @@ class StreamingCdcProcessor implements CdcChangeProcessor, AutoCloseable {
     private void forwardChange(Row row) {
         String changeType = row.getString(row.fieldIndex("_change_type"));
         String ticketId = row.getString(row.fieldIndex("ticket_uuid"));
-        if ("DELETE".equals(changeType) || "UPDATE_BEFORE".equals(changeType)) {
+
+        if ("DELETE".equals(changeType)) {
             changePublisher.publishTombstone(ticketId);
             return;
         }
+
+        if ("UPDATE_BEFORE".equals(changeType)) {
+            return;
+        }
+
         changePublisher.publish(rowMapper.map(row));
     }
 }
