@@ -31,9 +31,3 @@ cdcapp:
   state:
     cursor-file: /tmp/cdcapp.snapshot.cursor
 
-downstreamconsumer:
-  kafka:
-    bootstrap-servers: localhost:9094
-    topic: flight_tickets
-    group-id: downstream-consumer
-    avro-specific-reader: false

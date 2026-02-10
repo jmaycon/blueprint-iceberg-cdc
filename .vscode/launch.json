@@ -6,7 +6,8 @@
             "name": "Consumer",
             "request": "launch",
             "mainClass": "edu.jmaycon.downstreamconsumer.DownstreamConsumerApplication",
-            "projectName": "blueprint-iceberg-cdc"
+            "projectName": "blueprint-iceberg-cdc",
+            "vmArgs": "-Dspring.profiles.active=consumer"
         },
         {
             "type": "java",
@@ -14,7 +15,7 @@
             "request": "launch",
             "mainClass": "edu.jmaycon.icerbergwriter.IcebergWriterApplication",
             "projectName": "blueprint-iceberg-cdc",
-            "vmArgs": "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED",
+            "vmArgs": "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED -Dspring.profiles.active=icebergwriter",
             "console": "integratedTerminal"
         },
         {
