@@ -3,11 +3,11 @@ package edu.jmaycon.cdcapp.application;
 import edu.jmaycon.cdcapp.model.SnapshotId;
 import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
 import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;
-import edu.jmaycon.cdcapp.source.SourceModule;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -15,12 +15,13 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.streaming.StreamingQuery;
 
 @Slf4j
+@RequiredArgsConstructor
 @Builder
-public class StreamingCdcProcessor implements CdcChangeProcessor, AutoCloseable {
+class StreamingCdcProcessor implements CdcChangeProcessor, AutoCloseable {
     private final SparkSession sparkSession;
     private final FlightTicketRowMapper rowMapper;
     private final KafkaChangePublisher changePublisher;
-    private final SourceModule.Properties source;
+    private final String table;
 
     @Builder.Default
     private final AtomicBoolean started = new AtomicBoolean(false);
@@ -35,7 +36,7 @@ public class StreamingCdcProcessor implements CdcChangeProcessor, AutoCloseable 
         }
         log.info("Starting streaming CDC processor for snapshot trigger: {}", snapshotId);
 
-        Dataset<Row> stream = sparkSession.readStream().format("iceberg").load(source.table());
+        Dataset<Row> stream = sparkSession.readStream().format("iceberg").load(table);
 
         try {
             streamingQuery.set(stream.writeStream()

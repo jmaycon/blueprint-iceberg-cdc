@@ -40,9 +40,9 @@ class WriterModule {
     }
 
     @ConfigurationProperties(prefix = "icebergwriter")
-    public record Properties(Sqs sqs, Aws aws) {
-        public record Sqs(String queueName) {}
+    record Properties(Sqs sqs, Aws aws) {
+        record Sqs(String queueName) {}
 
-        public record Aws(String endpoint, String region, String accessKeyId, String secretAccessKey) {}
+        record Aws(String endpoint, String region, String accessKeyId, String secretAccessKey) {}
     }
 }

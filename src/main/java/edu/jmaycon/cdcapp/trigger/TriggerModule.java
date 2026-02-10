@@ -59,10 +59,10 @@ class TriggerModule {
     }
 
     @ConfigurationProperties(prefix = "cdcapp.trigger")
-    public record Properties(AwsConfig aws, SqsConfig sqs) {
+    record Properties(AwsConfig aws, SqsConfig sqs) {
 
-        public record AwsConfig(String endpoint, String region, String accessKeyId, String secretAccessKey) {}
+        record AwsConfig(String endpoint, String region, String accessKeyId, String secretAccessKey) {}
 
-        public record SqsConfig(String queueName, long pollDelay, int maxMessages, int waitTimeSeconds) {}
+        record SqsConfig(String queueName, long pollDelay, int maxMessages, int waitTimeSeconds) {}
     }
 }

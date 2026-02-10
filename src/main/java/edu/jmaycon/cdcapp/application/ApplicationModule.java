@@ -2,10 +2,10 @@ package edu.jmaycon.cdcapp.application;
 
 import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
 import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;
-import edu.jmaycon.cdcapp.source.SourceModule;
 import edu.jmaycon.cdcapp.state.CursorStore;
 import lombok.RequiredArgsConstructor;
 import org.apache.spark.sql.SparkSession;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -21,13 +21,15 @@ class ApplicationModule {
             FlightTicketRowMapper rowMapper,
             KafkaChangePublisher changePublisher,
             CursorStore cursorStore,
-            SourceModule.Properties sourceProperties) {
+            @Value("${cdcapp.source.table}") String table,
+            @Value("${cdcapp.source.changelog-view}") String changelogView) {
         return ChangelogCdcProcessor.builder()
                 .sparkSession(sparkSession)
                 .rowMapper(rowMapper)
                 .changePublisher(changePublisher)
                 .cursorStore(cursorStore)
-                .source(sourceProperties)
+                .table(table)
+                .changelogView(changelogView)
                 .build();
     }
 
@@ -37,12 +39,12 @@ class ApplicationModule {
             SparkSession sparkSession,
             FlightTicketRowMapper rowMapper,
             KafkaChangePublisher changePublisher,
-            SourceModule.Properties sourceProperties) {
+            @Value("${cdcapp.source.table}") String table) {
         return StreamingCdcProcessor.builder()
                 .sparkSession(sparkSession)
                 .rowMapper(rowMapper)
                 .changePublisher(changePublisher)
-                .source(sourceProperties)
+                .table(table)
                 .build();
     }
 

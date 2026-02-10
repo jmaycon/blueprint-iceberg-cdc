@@ -2,6 +2,6 @@ package edu.jmaycon.cdcapp.application;
 
 import edu.jmaycon.cdcapp.model.SnapshotId;
 
-public interface CdcChangeProcessor {
+interface CdcChangeProcessor {
     void process(SnapshotId snapshotId);
 }

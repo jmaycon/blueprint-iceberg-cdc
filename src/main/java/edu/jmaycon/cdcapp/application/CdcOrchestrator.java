@@ -5,7 +5,7 @@ import edu.jmaycon.cdcapp.trigger.SnapshotHandler;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class CdcOrchestrator implements SnapshotHandler {
+class CdcOrchestrator implements SnapshotHandler {
     private final CdcChangeProcessor changeProcessor;
 
     @Override

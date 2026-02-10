@@ -42,9 +42,10 @@
 - Use text blocks for any multi-line string literal.
 - Traditional `\n` concatenation or `StringBuilder` for static multi-line strings is FORBIDDEN.
 
-**Visibility Modifiers:**
-- Preferred visibility order: `private` > `package-private` (default) > `protected` > `public`.
-- Only use `public` if absolutely necessary (e.g., interface methods, API entry points).
+- **Visibility Modifiers**:
+    - **Default to Package-Private**: All classes, interfaces, records, and beans should be `package-private` unless they are explicitly required to be public (e.g., Spring Boot application entry points, cross-module API interfaces, domain models).
+    - **Strict Least Privilege**: Always start with `private` or `package-private`. Only promote to `public` if a compilation error or runtime requirement dictates it.
+    - **Review Rule**: Revisit all access modifiers during implementation to confirm they follow the least visibility principle.
 
 **Lambda Usage (MANDATORY):**
 - Avoid calling methods that take two or more lambda arguments in a row (e.g., `Optional.ifPresentOrElse(..)`). Use traditional `isPresent()` / `if` or other constructs to maintain high readability.

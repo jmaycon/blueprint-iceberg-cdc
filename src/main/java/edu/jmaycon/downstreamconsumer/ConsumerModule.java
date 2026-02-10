@@ -62,8 +62,8 @@ class ConsumerModule {
     }
 
     @ConfigurationProperties(prefix = "downstreamconsumer")
-    public record Properties(Kafka kafka) {
-        public record Kafka(
+    record Properties(Kafka kafka) {
+        record Kafka(
                 String bootstrapServers,
                 String topic,
                 String groupId,

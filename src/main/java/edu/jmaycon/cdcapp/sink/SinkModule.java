@@ -49,5 +49,5 @@ class SinkModule {
     }
 
     @ConfigurationProperties(prefix = "cdcapp.sink")
-    public record Properties(String bootstrapServers, String topic, String schemaRegistryUrl) {}
+    record Properties(String bootstrapServers, String topic, String schemaRegistryUrl) {}
 }

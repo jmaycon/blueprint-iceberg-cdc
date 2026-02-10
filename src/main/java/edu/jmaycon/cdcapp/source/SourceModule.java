@@ -69,8 +69,8 @@ public class SourceModule {
     }
 
     @ConfigurationProperties(prefix = "cdcapp.source")
-    public record Properties(String catalogUri, String warehouse, String table, String changelogView, S3Config s3) {
+    record Properties(String catalogUri, String warehouse, String table, String changelogView, S3Config s3) {
 
-        public record S3Config(String endpoint, String region, String accessKey, String secretKey) {}
+        record S3Config(String endpoint, String region, String accessKey, String secretKey) {}
     }
 }

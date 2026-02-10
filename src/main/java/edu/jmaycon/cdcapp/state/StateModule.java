@@ -20,5 +20,5 @@ class StateModule {
     }
 
     @ConfigurationProperties(prefix = "cdcapp.state")
-    public record Properties(String cursorFile) {}
+    static record Properties(String cursorFile) {}
 }

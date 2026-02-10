@@ -3,7 +3,6 @@ package edu.jmaycon.cdcapp.application;
 import edu.jmaycon.cdcapp.model.SnapshotId;
 import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
 import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;
-import edu.jmaycon.cdcapp.source.SourceModule;
 import edu.jmaycon.cdcapp.state.CursorStore;
 import edu.playground.avro.FlightTicketAvro;
 import lombok.Builder;
@@ -16,12 +15,13 @@ import org.apache.spark.sql.SparkSession;
 @Slf4j
 @Builder
 @RequiredArgsConstructor
-public class ChangelogCdcProcessor implements CdcChangeProcessor {
+class ChangelogCdcProcessor implements CdcChangeProcessor {
     private final SparkSession sparkSession;
     private final FlightTicketRowMapper rowMapper;
     private final KafkaChangePublisher changePublisher;
     private final CursorStore cursorStore;
-    private final SourceModule.Properties source;
+    private final String table;
+    private final String changelogView;
 
     @Override
     public void process(SnapshotId snapshotId) {
@@ -52,7 +52,7 @@ public class ChangelogCdcProcessor implements CdcChangeProcessor {
                 .read()
                 .format("iceberg")
                 .option("snapshot-id", Long.toString(snapshotId.value()))
-                .load(source.table());
+                .load(table);
         snapshot.collectAsList().forEach(row -> changePublisher.publish(rowMapper.map(row)));
     }
 
@@ -63,12 +63,12 @@ public class ChangelogCdcProcessor implements CdcChangeProcessor {
                   '%s',
                   '%s',
                   map('start-snapshot-id','%d','end-snapshot-id','%d'))
-                """.formatted(source.table(), tempViewName, startSnapshot.value(), endSnapshot.value());
+                """.formatted(table, tempViewName, startSnapshot.value(), endSnapshot.value());
         sparkSession.sql(statement);
     }
 
     private String tempChangelogViewName() {
-        String configured = source.changelogView();
+        String configured = changelogView;
         int lastDot = configured.lastIndexOf('.');
         if (lastDot == -1 || lastDot == configured.length() - 1) {
             return configured;

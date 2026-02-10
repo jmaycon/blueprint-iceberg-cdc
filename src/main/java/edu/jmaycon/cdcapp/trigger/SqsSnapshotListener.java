@@ -7,7 +7,7 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
 @Builder
-public class SqsSnapshotListener {
+class SqsSnapshotListener {
     private final SqsClient sqsClient;
     private final String queueUrl;
     private final SnapshotMessageParser messageParser;
