@@ -76,6 +76,9 @@ class StreamingCdcProcessor implements CdcChangeProcessor, AutoCloseable {
             return;
         }
 
+        // Ignore UPDATE_BEFORE events as they are immediately followed by an
+        // UPDATE_AFTER.
+        // Skipping them avoids redundant tombstone-upsert pairs in the downstream sink.
         if ("UPDATE_BEFORE".equals(changeType)) {
             return;
         }
