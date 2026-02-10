@@ -2,6 +2,8 @@ package edu.jmaycon.cdcapp.runtime;
 
 import edu.jmaycon.cdcapp.application.CdcChangeProcessor;
 import edu.jmaycon.cdcapp.application.CdcOrchestrator;
+import edu.jmaycon.cdcapp.application.ChangelogCdcProcessor;
+import edu.jmaycon.cdcapp.application.StreamingCdcProcessor;
 import edu.jmaycon.cdcapp.config.CdcAppProperties;
 import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
 import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;

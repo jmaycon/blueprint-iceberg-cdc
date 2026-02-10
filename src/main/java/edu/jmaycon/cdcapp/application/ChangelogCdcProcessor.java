@@ -1,6 +1,5 @@
-package edu.jmaycon.cdcapp.runtime;
+package edu.jmaycon.cdcapp.application;
 
-import edu.jmaycon.cdcapp.application.CdcChangeProcessor;
 import edu.jmaycon.cdcapp.config.CdcAppProperties;
 import edu.jmaycon.cdcapp.model.SnapshotId;
 import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
@@ -17,7 +16,7 @@ import org.apache.spark.sql.SparkSession;
 @Slf4j
 @Builder
 @RequiredArgsConstructor
-class ChangelogCdcProcessor implements CdcChangeProcessor {
+public class ChangelogCdcProcessor implements CdcChangeProcessor {
     private final SparkSession sparkSession;
     private final FlightTicketRowMapper rowMapper;
     private final KafkaChangePublisher changePublisher;

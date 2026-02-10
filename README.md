@@ -32,7 +32,8 @@ This project follows feature/vertical-slice packaging for a CDC component (organ
 - `edu.jmaycon.cdcapp.source`: Iceberg source tables from which the changes will be read.
 - `edu.jmaycon.cdcapp.sink`: Kafka publishing and serialization wiring.
 - `edu.jmaycon.cdcapp.state`: cursor persistence (filesystem).
-- `edu.jmaycon.cdcapp.runtime`: orchestration, runners, and app wiring.
+- `edu.jmaycon.cdcapp.application`: orchestration, CDC processors and app logic.
+- `edu.jmaycon.cdcapp.runtime`: application configuration and infrastructure wiring.
 
 **Prerequisites**
 - Java 17+
