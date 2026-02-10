@@ -45,7 +45,7 @@ class StreamingCdcProcessor implements CdcChangeProcessor, AutoCloseable {
             streamingQuery.set(stream.writeStream()
                     .foreachBatch((batch, batchId) -> {
                         log.debug("Processing streaming batch {}", batchId);
-                        batch.collectAsList().forEach(this::publishChange);
+                        batch.collectAsList().forEach(this::forwardChange);
                     })
                     .start());
         } catch (TimeoutException ex) {
@@ -67,7 +67,7 @@ class StreamingCdcProcessor implements CdcChangeProcessor, AutoCloseable {
         }
     }
 
-    private void publishChange(Row row) {
+    private void forwardChange(Row row) {
         String changeType = row.getString(row.fieldIndex("_change_type"));
         String ticketId = row.getString(row.fieldIndex("ticket_uuid"));
         if ("DELETE".equals(changeType) || "UPDATE_BEFORE".equals(changeType)) {

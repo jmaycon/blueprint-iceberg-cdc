@@ -30,9 +30,7 @@ class ChangelogCdcProcessor implements CdcChangeProcessor {
         SnapshotId to = interval.to();
         if (from != null) {
             try {
-                createChangelogView(from, to);
-                Dataset<Row> changes = sparkSession.table(tempChangelogViewName());
-                changes.collectAsList().forEach(this::publishChange);
+                processIncrementalChanges(from, to);
                 cursorStore.save(to);
             } catch (IllegalArgumentException ex) {
                 log.warn(
@@ -40,16 +38,22 @@ class ChangelogCdcProcessor implements CdcChangeProcessor {
                         from,
                         to,
                         ex);
-                publishFullSnapshot(to);
+                processFullSnapshot(to);
                 cursorStore.save(to);
             }
         } else {
-            publishFullSnapshot(to);
+            processFullSnapshot(to);
             cursorStore.save(to);
         }
     }
 
-    private void publishFullSnapshot(SnapshotId snapshotId) {
+    private void processIncrementalChanges(SnapshotId from, SnapshotId to) {
+        createChangelogView(from, to);
+        Dataset<Row> changes = sparkSession.table(tempChangelogViewName());
+        changes.collectAsList().forEach(this::forwardChange);
+    }
+
+    private void processFullSnapshot(SnapshotId snapshotId) {
         Dataset<Row> snapshot = sparkSession
                 .read()
                 .format("iceberg")
@@ -78,7 +82,7 @@ class ChangelogCdcProcessor implements CdcChangeProcessor {
         return configured.substring(lastDot + 1);
     }
 
-    private void publishChange(Row row) {
+    private void forwardChange(Row row) {
         String changeType = row.getString(row.fieldIndex("_change_type"));
         String ticketId = row.getString(row.fieldIndex("ticket_uuid"));
         if ("DELETE".equals(changeType) || "UPDATE_BEFORE".equals(changeType)) {
