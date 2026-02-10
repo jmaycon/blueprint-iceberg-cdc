@@ -83,6 +83,13 @@
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-sql_2.12</artifactId>
 			<version>${spark.version}</version>
+			<exclusions>
+				<exclusion>
+					<!-- Excluded to resolve SLF4J multiple bindings conflict; we prefer Logback via Spring Boot -->
+					<groupId>org.apache.logging.log4j</groupId>
+					<artifactId>log4j-slf4j2-impl</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.scala-lang</groupId>
