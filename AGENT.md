@@ -158,7 +158,8 @@ public class SearchConfig {
 ## 10. Code Organization
 - **Member Ordering**:
     - Within a class or record, order methods with the same access modifier by relevance and meaning (most significant business logic first).
-    - All static members (static fields, static methods, static initialization blocks) and static inner classes MUST be placed at the bottom of the file.
+    - All static members (static fields, static methods, constants and static initialization blocks) MUST be placed at the beginning of the class.
+    - Static inner classes MUST be placed at the bottom of the file.
 
 ## 11. Naming Conventions
 - **Class Suffixes**: Use descriptive suffixes to indicate the role of a class or interface:

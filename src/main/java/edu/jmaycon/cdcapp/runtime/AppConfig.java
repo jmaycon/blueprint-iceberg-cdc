@@ -43,6 +43,12 @@ import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 @EnableConfigurationProperties(CdcAppProperties.class)
 public class AppConfig {
 
+    static {
+        System.setProperty("aws.region", "eu-central-1");
+        System.setProperty("aws.accessKeyId", "admin");
+        System.setProperty("aws.secretAccessKey", "admin123");
+    }
+
     @Bean
     public SparkSession sparkSession(CdcAppProperties properties) {
         CdcAppProperties.Iceberg iceberg = properties.iceberg();
@@ -205,11 +211,5 @@ public class AppConfig {
                 .orchestrator(orchestrator)
                 .properties(properties.sqs())
                 .build();
-    }
-
-    static {
-        System.setProperty("aws.region", "eu-central-1");
-        System.setProperty("aws.accessKeyId", "admin");
-        System.setProperty("aws.secretAccessKey", "admin123");
     }
 }
