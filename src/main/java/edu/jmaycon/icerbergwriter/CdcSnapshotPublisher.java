@@ -5,7 +5,7 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 @RequiredArgsConstructor
-public final class CdcSnapshotPublisher {
+final class CdcSnapshotPublisher {
     private final SqsClient sqsClient;
     private final String queueUrl;
 
