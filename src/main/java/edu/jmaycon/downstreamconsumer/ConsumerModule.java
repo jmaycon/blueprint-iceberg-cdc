@@ -1,8 +1,14 @@
 package edu.jmaycon.downstreamconsumer;
 
+import edu.playground.avro.FlightTicketAvro;
+import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
+import io.confluent.kafka.serializers.KafkaAvroDeserializer;
+import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,13 +19,15 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.MessageListener;
 
 @Configuration
-@EnableConfigurationProperties(DownstreamConsumerProperties.class)
-public class DownstreamConsumerConfig {
+@EnableConfigurationProperties(ConsumerModule.Properties.class)
+@RequiredArgsConstructor
+class ConsumerModule {
+
+    private final Properties properties;
 
     @Bean
-    public ConsumerFactory<String, edu.playground.avro.FlightTicketAvro> consumerFactory(
-            DownstreamConsumerProperties properties) {
-        DownstreamConsumerProperties.Kafka kafka = properties.kafka();
+    ConsumerFactory<String, FlightTicketAvro> consumerFactory() {
+        Properties.Kafka kafka = properties.kafka();
         Map<String, Object> config = Map.of(
                 ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
                 kafka.bootstrapServers(),
@@ -30,27 +38,36 @@ public class DownstreamConsumerConfig {
                 ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
                 StringDeserializer.class,
                 ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-                io.confluent.kafka.serializers.KafkaAvroDeserializer.class,
-                io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
+                KafkaAvroDeserializer.class,
+                AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG,
                 kafka.schemaRegistryUrl(),
-                io.confluent.kafka.serializers.KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG,
+                KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG,
                 kafka.avroSpecificReader());
         return new DefaultKafkaConsumerFactory<>(config);
     }
 
     @Bean
-    public MessageListener<String, edu.playground.avro.FlightTicketAvro> kafkaLogListener() {
+    MessageListener<String, FlightTicketAvro> kafkaLogListener() {
         return new KafkaLogListener();
     }
 
     @Bean
-    public ConcurrentMessageListenerContainer<String, edu.playground.avro.FlightTicketAvro> kafkaListenerContainer(
-            ConsumerFactory<String, edu.playground.avro.FlightTicketAvro> consumerFactory,
-            MessageListener<String, edu.playground.avro.FlightTicketAvro> kafkaLogListener,
-            DownstreamConsumerProperties properties) {
+    ConcurrentMessageListenerContainer<String, FlightTicketAvro> kafkaListenerContainer(
+            ConsumerFactory<String, FlightTicketAvro> consumerFactory,
+            MessageListener<String, FlightTicketAvro> kafkaLogListener) {
         ContainerProperties containerProperties =
                 new ContainerProperties(properties.kafka().topic());
         containerProperties.setMessageListener(kafkaLogListener);
         return new ConcurrentMessageListenerContainer<>(consumerFactory, containerProperties);
+    }
+
+    @ConfigurationProperties(prefix = "downstreamconsumer")
+    record Properties(Kafka kafka) {
+        record Kafka(
+                String bootstrapServers,
+                String topic,
+                String groupId,
+                boolean avroSpecificReader,
+                String schemaRegistryUrl) {}
     }
 }

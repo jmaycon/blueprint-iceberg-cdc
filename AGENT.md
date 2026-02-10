@@ -26,6 +26,19 @@
 - Clear separation of concerns.
 - One business concept per class.
 - Fail-fast validation.
+- **Short-Circuiting (Guard Clauses)**: Prefer early exits/guard clauses at the beginning of methods to reduce nesting and improve readability.
+    - Example:
+      ```java
+      public void process(Data data) {
+          if (data == null || data.isInvalid()) {
+              return;
+          }
+          // main logic follows
+      }
+      ```
+- **CDC State Synchronization**: When processing changelogs for key-value (Upsert) sinks:
+    - `DELETE` events must trigger a tombstone to clear the state.
+    - `UPDATE_BEFORE` events should be **ignored** to avoid redundant tombstone-upsert pairs, as the subsequent `UPDATE_AFTER` handles the update.
 
 **Import Rules:**
 - Use explicit/qualified imports (e.g., `import java.util.List;`) whenever possible.
@@ -42,9 +55,10 @@
 - Use text blocks for any multi-line string literal.
 - Traditional `\n` concatenation or `StringBuilder` for static multi-line strings is FORBIDDEN.
 
-**Visibility Modifiers:**
-- Preferred visibility order: `private` > `package-private` (default) > `protected` > `public`.
-- Only use `public` if absolutely necessary (e.g., interface methods, API entry points).
+- **Visibility Modifiers**:
+    - **Default to Package-Private**: All classes, interfaces, records, and beans should be `package-private` unless they are explicitly required to be public (e.g., Spring Boot application entry points, cross-module API interfaces, domain models).
+    - **Strict Least Privilege**: Always start with `private` or `package-private`. Only promote to `public` if a compilation error or runtime requirement dictates it.
+    - **Review Rule**: Revisit all access modifiers during implementation to confirm they follow the least visibility principle.
 
 **Lambda Usage (MANDATORY):**
 - Avoid calling methods that take two or more lambda arguments in a row (e.g., `Optional.ifPresentOrElse(..)`). Use traditional `isPresent()` / `if` or other constructs to maintain high readability.
@@ -73,6 +87,11 @@ String message = "Error occurred\nPlease try again\nContact support";
     - Exceptions should be expressive and specific to the failure mode.
     - All exceptions must be handled: either thrown to the caller or logged with a proper level (e.g., SLF4J log.error). Silently ignoring exceptions is strictly FORBIDDEN.
 
+- **Variable Names**:
+    - Must be descriptive and use `camelCase`.
+    - Single-letter variable names are acceptable ONLY in lambda expressions or loop counters (e.g., `i`).
+    - **Type Alignment**: Variable names must align with their type. Do not use alias names that differ significantly from the type (e.g., do NOT name a parameter of type `SnapshotHandler` as `orchestrator`; instead use `snapshotHandler` or `handler`).
+
 ## 5. Testing Standards
 - Unit tests for all business logic.
 - Integration tests for module boundaries.
@@ -93,17 +112,25 @@ String message = "Error occurred\nPlease try again\nContact support";
 - Javadoc is prohibited; names must express intent.
 
 ## 7. Nullability and Validation
-- JSpecify annotations required for nullability declarations.
-- All properties are non-null by default.
-- `@Nullable` only for exceptional cases.
-- Lombok `@RequiredArgsConstructor` for dependency injection.
-- Records for immutable data structures.
+- **Null Safety Enforcement**: NullAway (via Error Prone) is used to enforce null safety at compile time.
+- **Non-Null by Default**: All classes within the `edu.jmaycon` package tree are **non-null by default**.
+- **JSpecify Annotations**:
+    - Use `org.jspecify.annotations.Nullable` to explicitly mark any field, parameter, or return type that can be null.
+    - Do NOT use `@NonNull` or equivalent annotations; non-null is the implicit and enforced default.
+- **Validation**:
+    - Any attempt to pass a potentially null value where non-null is expected will trigger a compilation error.
+    - Dereferencing a `@Nullable` variable without a prior null check will trigger a compilation error.
+- **Lombok Alignment**: Lombok `@RequiredArgsConstructor` correctly handles dependency injection for non-null fields.
+- **Records**: Use records for immutable data structures, applying `@Nullable` to components only when necessary.
 
 ## 8. Configuration Management
 - Each module must have its own Config class (e.g., `SearchConfig`).
 - All Spring components MUST be assembled via `@Bean` methods in module Config.
 - `@Component` and `@Service` are FORBIDDEN.
 - Bean declarations must be explicit and module-scoped.
+- **Bean Statelessness**: Spring beans MUST be stateless and thread-safe. Mutable state in beans is FORBIDDEN.
+    - All Spring beans MUST prefer `singleton` scope.
+    - If mutable state is strictly required (e.g., for a stateful CDC processor), do NOT use Spring prototype scopes. Instead, implement a custom factory to manage instance creation manually to keep the system simple and predictable.
 - Configuration properties must be validated at startup.
 - Filesystem-backed configuration must be configurable via env or config files using normalized paths.
 
@@ -167,8 +194,30 @@ public class SearchConfig {
     - `Listener`: For components that react to external triggers or messages (e.g., `SqsSnapshotListener`).
     - `Mapper`: For components that transform data between different representations (e.g., `FlightTicketRowMapper`).
     - `Reader`: For components that fetch data from external sources (e.g., `IcebergSnapshotReader`).
-    - `Config`: For Spring `@Configuration` classes (e.g., `AppConfig`).
-    - `Properties`: For `@ConfigurationProperties` classes (e.g., `CdcAppProperties`).
+    - `Module`: For Spring `@Configuration` classes representing a module (e.g., `SourceModule`).
+    - `Properties`: For `@ConfigurationProperties` classes (e.g., `SourceModule.Properties`).
+
+## 12. Module Config Pattern
+- **Configuration Classes**:
+    - Each module should have its own `@Configuration` class (e.g., `SourceModule`).
+    - Prefer `package-private` visibility for the configuration class and its `@Bean` methods, unless public access is required by other modules.
+- **Properties**:
+    - Use `record` classes for `@ConfigurationProperties`.
+    - Do NOT use Lombok (`@Getter`, `@Setter`, etc.) on property records.
+    - Property records should be inner types of the module configuration class and `package-private`.
+    - Example:
+      ```java
+      @Configuration
+      @EnableConfigurationProperties(MyModule.Properties.class)
+      class MyModule {
+          @ConfigurationProperties(prefix = "app.my-module")
+          record Properties(String host, int port) {}
+      }
+      ```
+- **Rationale**:
+    - **Isolation**: Allows each module to be tested in isolation without loading the entire application context.
+    - **Reduced Coupling**: Decouples packages by preventing cross-module bean leaking.
+    - **Encapsulation**: Enforces package-level visibility (package-private) to ensure internal components remain internal.
 
 ---
-**Version**: 1.12.0 | **Ratified**: 2025-10-25 | **Last Amended**: 2026-02-10
+**Version**: 1.15.0 | **Ratified**: 2025-10-25 | **Last Amended**: 2026-02-10

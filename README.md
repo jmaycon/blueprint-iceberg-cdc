@@ -25,16 +25,14 @@ Blueprint architecture for Change Data Capture from Iceberg materialized views s
 
 **Package Structure**
 
-This project follows feature/vertical-slice packaging for a CDC component (organized by CDC responsibilities)
+This project follows feature/vertical-slice packaging ("Module Config Pattern") for a CDC component, organized by CDC responsibilities. This pattern enforces package-level visibility to ensure isolation, reduce coupling, and prevent component leaking.
 
 - `edu.jmaycon.cdcapp.model`: domain identifiers, records, and CDC result types.
 - `edu.jmaycon.cdcapp.trigger`: snapshot CDC triggers (e.g.; listener or scheduled jobs)
 - `edu.jmaycon.cdcapp.source`: Iceberg source tables from which the changes will be read.
 - `edu.jmaycon.cdcapp.sink`: Kafka publishing and serialization wiring.
 - `edu.jmaycon.cdcapp.state`: cursor persistence (filesystem).
-- `edu.jmaycon.cdcapp.application`: orchestration, CDC processors and app logic.
-- `edu.jmaycon.cdcapp.config`: configuration properties.
-- `edu.jmaycon.cdcapp.runtime`: application configuration and infrastructure wiring.
+- `edu.jmaycon.cdcapp.application`: orchestration, CDC processors, and module configuration wiring.
 
 **Prerequisites**
 - Java 17+

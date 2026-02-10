@@ -6,7 +6,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.listener.MessageListener;
 
 @Slf4j
-public class KafkaLogListener implements MessageListener<String, FlightTicketAvro> {
+class KafkaLogListener implements MessageListener<String, FlightTicketAvro> {
 
     @Override
     public void onMessage(ConsumerRecord<String, FlightTicketAvro> record) {

@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import lombok.AccessLevel;
@@ -73,8 +74,8 @@ public final class FlightTicketAvroDataSample {
 
         FlightDetails flightDetails = FlightDetails.newBuilder()
                 .setFlightNumber(faker.text().text(4) + "-" + faker.number().digits(6))
-                .setDepartureAirport(faker.text().text(3).toUpperCase())
-                .setArrivalAirport(faker.text().text(3).toUpperCase())
+                .setDepartureAirport(faker.text().text(3).toUpperCase(Locale.ROOT))
+                .setArrivalAirport(faker.text().text(3).toUpperCase(Locale.ROOT))
                 .setDepartureTime(departureTime) // timestamp-millis
                 .setArrivalTime(arrivalTime) // 1 hour later
                 .build();

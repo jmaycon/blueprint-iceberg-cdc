@@ -5,29 +5,33 @@ spring:
     default: changelog
 
 cdcapp:
-  aws:
-    endpoint: http://localhost:4566
-    region: eu-central-1
-    access-key-id: admin
-    secret-access-key: admin123
-  sqs:
-    queue-name: flight_tickets.fifo
-    poll-delay: 2000
-    max-messages: 10
-    wait-time-seconds: 10
-  kafka:
-    bootstrap-servers: localhost:9094
-    topic: flight_tickets
-    schema-registry-url: http://localhost:8081
-  iceberg:
+  source:
     catalog-uri: http://localhost:8181
     warehouse: s3://analytics-warehouse
     table: rest.default.flight_tickets
     changelog-view: rest.default.flight_tickets_changelog
-    s3-endpoint: http://localhost:9000
-    s3-region: eu-central-1
-    s3-access-key: admin
-    s3-secret-key: admin123
+    s3:
+      endpoint: http://localhost:9000
+      region: eu-central-1
+      access-key: admin
+      secret-key: admin123
+  sink:
+    bootstrap-servers: localhost:9094
+    topic: flight_tickets
+    schema-registry-url: http://localhost:8081
   state:
     cursor-file: /tmp/cdcapp.snapshot.cursor
+  trigger:
+    aws:
+      endpoint: http://localhost:4566
+      region: eu-central-1
+      access-key-id: admin
+      secret-access-key: admin123
+    sqs:
+      queue-name: flight_tickets.fifo
+      poll-delay: 2000
+      max-messages: 10
+      wait-time-seconds: 10
+      heartbeat-interval-seconds: 10
+      visibility-extension-seconds: 30
 
