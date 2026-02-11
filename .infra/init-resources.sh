@@ -18,7 +18,7 @@ echo "[init-resources] Creating Kafka topic: flight_tickets"
   --config cleanup.policy=compact
 
 echo "[init-resources] Creating SQS FIFO queue: flight_tickets.fifo"
-awslocal sqs create-queue \
+aws sqs create-queue \
   --endpoint-url http://localstack:4566 \
   --queue-name flight_tickets.fifo \
   --attributes FifoQueue=true,ContentBasedDeduplication=true
