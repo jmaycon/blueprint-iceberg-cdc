@@ -6,17 +6,22 @@ import edu.jmaycon.cdcapp.sink.KafkaChangePublisher;
 import edu.jmaycon.cdcapp.source.FlightTicketRowMapper;
 import edu.jmaycon.cdcapp.state.CursorStore;
 import edu.playground.avro.FlightTicketAvro;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.jspecify.annotations.Nullable;
+import org.springframework.kafka.support.SendResult;
 
 @Slf4j
 @Builder
 @RequiredArgsConstructor
-class ChangelogCdcProcessor implements CdcChangeProcessor {
+class ChangelogCdcProcessor {
     private final SparkSession sparkSession;
     private final FlightTicketRowMapper rowMapper;
     private final KafkaChangePublisher changePublisher;
@@ -24,42 +29,54 @@ class ChangelogCdcProcessor implements CdcChangeProcessor {
     private final String table;
     private final String changelogView;
 
-    @Override
     public void process(SnapshotInterval interval) {
+        SnapshotId to = Objects.requireNonNull(interval.to());
         SnapshotId from = interval.from();
-        SnapshotId to = interval.to();
-        if (from != null) {
-            try {
-                processIncrementalChanges(from, to);
-                cursorStore.save(to);
-            } catch (IllegalArgumentException ex) {
-                log.warn(
-                        "Stored snapshot cursor {} is not an ancestor of current snapshot {}. Falling back to full snapshot.",
-                        from,
-                        to,
-                        ex);
-                processFullSnapshot(to);
-                cursorStore.save(to);
-            }
-        } else {
-            processFullSnapshot(to);
+
+        log.info("Processing CDC interval: from={} to={}", from, to);
+
+        if (from == null) {
+            waitFor(processFullSnapshot(to));
+            cursorStore.save(to);
+            return;
+        }
+
+        try {
+            waitFor(processIncrementalChanges(from, to));
+            cursorStore.save(to);
+        } catch (IllegalArgumentException ex) {
+            log.warn(
+                    "Stored snapshot cursor {} is not an ancestor of current snapshot {}. Falling back to full snapshot.",
+                    from,
+                    to,
+                    ex);
+            waitFor(processFullSnapshot(to));
             cursorStore.save(to);
         }
     }
 
-    private void processIncrementalChanges(SnapshotId from, SnapshotId to) {
-        createChangelogView(from, to);
-        Dataset<Row> changes = sparkSession.table(tempChangelogViewName());
-        changes.collectAsList().forEach(this::forwardChange);
+    private void waitFor(List<CompletableFuture<SendResult<String, FlightTicketAvro>>> futures) {
+        CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
     }
 
-    private void processFullSnapshot(SnapshotId snapshotId) {
+    private List<CompletableFuture<SendResult<String, FlightTicketAvro>>> processIncrementalChanges(
+            SnapshotId from, SnapshotId to) {
+        createChangelogView(from, to);
+        return sparkSession.table(tempChangelogViewName()).collectAsList().stream()
+                .map(this::forwardChange)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    private List<CompletableFuture<SendResult<String, FlightTicketAvro>>> processFullSnapshot(SnapshotId snapshotId) {
         Dataset<Row> snapshot = sparkSession
                 .read()
                 .format("iceberg")
                 .option("snapshot-id", Long.toString(snapshotId.value()))
                 .load(table);
-        snapshot.collectAsList().forEach(row -> changePublisher.publish(rowMapper.map(row)));
+        return snapshot.collectAsList().stream()
+                .map(row -> changePublisher.publish(rowMapper.map(row)))
+                .toList();
     }
 
     private void createChangelogView(SnapshotId startSnapshot, SnapshotId endSnapshot) {
@@ -82,23 +99,22 @@ class ChangelogCdcProcessor implements CdcChangeProcessor {
         return configured.substring(lastDot + 1);
     }
 
-    private void forwardChange(Row row) {
+    @Nullable
+    private CompletableFuture<SendResult<String, FlightTicketAvro>> forwardChange(Row row) {
         // Ignore UPDATE_BEFORE events as they are immediately followed by an
         // UPDATE_AFTER.
         // Skipping them avoids redundant tombstone-upsert pairs in the downstream sink.
         if ("UPDATE_BEFORE".equals(row.getString(row.fieldIndex("_change_type")))) {
-            return;
+            return null;
         }
 
         String changeType = row.getString(row.fieldIndex("_change_type"));
         String ticketId = row.getString(row.fieldIndex("ticket_uuid"));
 
         if ("DELETE".equals(changeType)) {
-            changePublisher.publishTombstone(ticketId);
-            return;
+            return changePublisher.publishTombstone(ticketId);
         }
 
-        FlightTicketAvro ticket = rowMapper.map(row);
-        changePublisher.publish(ticket);
+        return changePublisher.publish(rowMapper.map(row));
     }
 }

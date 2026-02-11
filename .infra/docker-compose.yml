@@ -10,22 +10,9 @@ services:
       - "9000:9000"
       - "9001:9001"
 
-  minio-init:
-    image: amazon/aws-cli
-    container_name: minio-init
-    command: |
-      -c "sleep 2 && \
-      aws --endpoint-url http://minio:9000 s3 mb s3://analytics-warehouse --region ${AWS_REGION:-eu-central-1} || exit 0"
-    entrypoint: [ /bin/bash ]
-    environment:
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-admin}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-admin123}
-      AWS_REGION: ${AWS_REGION:-eu-central-1}
-    depends_on:
-      - minio
 
   localstack:
-    image: localstack/localstack:latest
+    image: localstack/localstack:3.8.1
     container_name: localstack
     environment:
       SERVICES: sqs
@@ -38,9 +25,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
   trino:
-    image: trinodb/trino:latest
+    image: trinodb/trino:465
     container_name: trino
-    depends_on: [minio-init, localstack]
+    depends_on: [minio, localstack]
     ports:
       - "8080:8080"
     environment:
@@ -55,7 +42,7 @@ services:
   iceberg-rest-catalog:
     image: apache/iceberg-rest-fixture:latest
     container_name: iceberg-rest-catalog
-    depends_on: [minio-init]
+    depends_on: [minio]
     ports:
       - "8181:8181"
     environment:
@@ -124,7 +111,7 @@ services:
       KARAPACE_AUTHORIZATION: "false"
 
   kafka-ui:
-    image: provectuslabs/kafka-ui:latest
+    image: provectuslabs/kafka-ui:v0.7.2
     container_name: kafka-ui
     ports:
       - "8084:8080"
@@ -139,7 +126,7 @@ services:
       KAFKA_CLUSTERS_0_SCHEMA_REGISTRY: "http://kafka-schema-registry:8081"
 
   hue:
-    image: gethue/hue:latest
+    image: gethue/hue:4.11.0
     container_name: hue-dev-tool-query-ui
     user: "0:0"
     ports:
@@ -153,3 +140,40 @@ services:
     depends_on:
       trino:
         condition: service_started
+
+  init-resources:
+    build:
+      context: ..
+      dockerfile: .infra/init-resources.Dockerfile
+    container_name: init-resources
+    depends_on:
+      minio:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+      kafka-schema-registry:
+        condition: service_started
+      localstack:
+        condition: service_started
+    volumes:
+      - ../src/main/resources/kafka-schemas:/schemas:ro
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-admin}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-admin123}
+      AWS_DEFAULT_REGION: ${AWS_REGION:-eu-central-1}
+
+  cdcapp:
+    build:
+      context: ..
+      dockerfile: .infra/cdcapp.Dockerfile
+    container_name: cdcapp
+    depends_on:
+      init-resources:
+        condition: service_completed_successfully
+    environment:
+      SPRING_APPLICATION_NAME: blueprint-iceberg-cdc
+      CDCAPP_SOURCE_CATALOG_URI: http://iceberg-rest-catalog:8181
+      CDCAPP_SOURCE_S3_ENDPOINT: http://minio:9000
+      CDCAPP_SINK_BOOTSTRAP_SERVERS: kafka:9092
+      CDCAPP_SINK_SCHEMA_REGISTRY_URL: http://kafka-schema-registry:8081
+      CDCAPP_TRIGGER_AWS_ENDPOINT: http://localstack:4566

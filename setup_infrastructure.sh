@@ -122,7 +122,7 @@ verify_schema_registered() {
 }
 
 log "Undeploying infrastructure..."
-docker compose -f "$COMPOSE_FILE" down -v
+#docker compose -f "$COMPOSE_FILE" down -v
 
 log "Deploying infrastructure..."
 docker compose -f "$COMPOSE_FILE" up -d

@@ -1,8 +1,6 @@
-spring:
-  application:
-    name: blueprint-iceberg-cdc
-  profiles:
-    default: changelog
+spring.application.name: blueprint-iceberg-cdc
+management.endpoints.web.exposure.include: health,info,prometheus,metrics
+management.endpoint.health.show-details: always
 
 cdcapp:
   source:
@@ -34,4 +32,3 @@ cdcapp:
       wait-time-seconds: 10
       heartbeat-interval-seconds: 10
       visibility-extension-seconds: 30
-

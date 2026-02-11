@@ -1,9 +1,11 @@
 package edu.jmaycon.cdcapp.sink;
 
 import edu.playground.avro.FlightTicketAvro;
+import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -11,9 +13,9 @@ public class KafkaChangePublisher {
     private final KafkaTemplate<String, FlightTicketAvro> kafkaTemplate;
     private final String topic;
 
-    public void publish(FlightTicketAvro ticket) {
+    public CompletableFuture<SendResult<String, FlightTicketAvro>> publish(FlightTicketAvro ticket) {
         String key = ticket.getTicketUuid().toString();
-        kafkaTemplate.send(topic, key, ticket).whenComplete((result, ex) -> {
+        return kafkaTemplate.send(topic, key, ticket).whenComplete((result, ex) -> {
             if (ex == null) {
                 log.info(
                         "Sent record key={} offset={} partition={} type=UPSERT",
@@ -26,8 +28,8 @@ public class KafkaChangePublisher {
         });
     }
 
-    public void publishTombstone(String key) {
-        kafkaTemplate.send(topic, key, null).whenComplete((result, ex) -> {
+    public CompletableFuture<SendResult<String, FlightTicketAvro>> publishTombstone(String key) {
+        return kafkaTemplate.send(topic, key, null).whenComplete((result, ex) -> {
             if (ex == null) {
                 log.info(
                         "Sent record key={} offset={} partition={} type=TOMBSTONE",
