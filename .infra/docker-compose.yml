@@ -154,15 +154,32 @@ services:
       trino:
         condition: service_started
 
+  init-resources:
+    build:
+      context: .infra
+      dockerfile: init-resources.Dockerfile
+    container_name: init-resources
+    depends_on:
+      kafka:
+        condition: service_healthy
+      kafka-schema-registry:
+        condition: service_started
+      localstack:
+        condition: service_started
+    volumes:
+      - ../src/main/resources/kafka-schemas:/schemas:ro
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-admin}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-admin123}
+      AWS_DEFAULT_REGION: ${AWS_REGION:-eu-central-1}
+
   cdcapp:
     build:
       context: ..
       dockerfile: .infra/cdcapp.Dockerfile
     container_name: cdcapp
     depends_on:
-      minio-init:
+      init-resources:
         condition: service_completed_successfully
-      kafka-schema-registry:
-        condition: service_started
     environment:
       SPRING_APPLICATION_NAME: blueprint-iceberg-cdc
