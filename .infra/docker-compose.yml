@@ -156,8 +156,8 @@ services:
 
   init-resources:
     build:
-      context: .infra
-      dockerfile: init-resources.Dockerfile
+      context: ..
+      dockerfile: .infra/init-resources.Dockerfile
     container_name: init-resources
     depends_on:
       kafka:
