@@ -48,7 +48,7 @@ public class IcebergWriterApplication implements CommandLineRunner {
                 .appName("iceberg-writer")
                 .master("local[*]")
                 .config("spark.sql.catalog.rest", "org.apache.iceberg.spark.SparkCatalog")
-                .config("spark.sql.catalog.rest.catalog-impl", "org.apache.iceberg.rest.RESTCatalog")
+                .config("spark.sql.catalog.rest.type", "rest")
                 .config("spark.sql.catalog.rest.uri", "http://localhost:8181")
                 .config("spark.sql.catalog.rest.warehouse", "s3://analytics-warehouse")
                 .config("spark.sql.catalog.rest.io-impl", "org.apache.iceberg.aws.s3.S3FileIO")

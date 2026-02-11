@@ -1,3 +1,5 @@
+spring.main.web-application-type: none
+
 icebergwriter:
   aws:
     endpoint: http://localhost:4566
