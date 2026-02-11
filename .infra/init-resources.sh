@@ -1,6 +1,9 @@
 #!/bin/sh
 set -e
 
+echo "[init-resources] Creating MinIO S3 bucket: analytics-warehouse"
+aws --endpoint-url http://minio:9000 s3 mb s3://analytics-warehouse --region eu-central-1 || echo "Bucket already exists"
+
 echo "[init-resources] Waiting for services to be ready..."
 sleep 10
 
